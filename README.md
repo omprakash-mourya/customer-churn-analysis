@@ -224,9 +224,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## � Contact
 
-**Project Maintainer** - [your.email@example.com](mailto:your.email@example.com)
+**Project Maintainer** - [ommourya2006@gmail.com](mailto:ommourya2006@gmail.com)
 
-Project Link: [[https://github.com/yourusername/customer-churn-analysis](https://github.com/omprakash-mourya/customer-churn-analysis)]
+Project Link: [[https://github.com/omprakash-mourya/customer-churn-analysis](https://github.com/omprakash-mourya/customer-churn-analysis)]
 
 ---
 
@@ -382,8 +382,8 @@ Special thanks to the open-source community for the incredible tools that made t
 
 - **Author**: Customer Churn Fire Team
 - **Email**: support@churnfire.com
-- **Issues**: [GitHub Issues](https://github.com/your-username/CustomerChurnFireProject/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/CustomerChurnFireProject/discussions)
+- **Issues**: [GitHub Issues](https://github.com/omprakash-mourya/customer-churn-analysis/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/omprakash-mourya/customer-churn-analysis/discussions)
 
 ---
 
@@ -391,6 +391,6 @@ Special thanks to the open-source community for the incredible tools that made t
 
 **🔥 Built with ❤️ for better customer retention 🔥**
 
-[⬆ Back to Top](#-customer-churn-fire-project)
+[⬆ Back to Top](#-customer-churn-analysis-project)
 
 </div>
