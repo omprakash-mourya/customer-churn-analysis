@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Force restart Streamlit and clear all caches
+Customer Churn Analysis - Force restart Streamlit and clear all caches
 """
 
 import subprocess
