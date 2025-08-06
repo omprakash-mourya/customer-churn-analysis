@@ -226,7 +226,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Project Maintainer** - [your.email@example.com](mailto:your.email@example.com)
 
-Project Link: [https://github.com/yourusername/customer-churn-analysis](https://github.com/yourusername/customer-churn-analysis)
+Project Link: [[https://github.com/yourusername/customer-churn-analysis](https://github.com/omprakash-mourya/customer-churn-analysis)]
 
 ---
 
