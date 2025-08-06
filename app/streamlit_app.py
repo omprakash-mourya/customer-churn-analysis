@@ -1,5 +1,12 @@
 """
-Streamlit Dashboard for Customer Churn Prediction.
+Stre# Page configuration - MUST be the first Streamlit command
+st.set_page_config(
+    page_title="Customer Churn Analysis",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state=    st.markdown('<h1 class="main-header">📊 Customer Churn Analysis</h1>', unsafe_allow_html=True)
+    st.markdown("### *Advanced Machine Learning Pipeline for Customer Retention Analytics*")xpanded"
+)ashboard for Customer Churn Prediction.
 
 This interactive dashboard provides comprehensive churn analysis,
 model insights, and cost-benefit simulation capabilities.

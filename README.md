@@ -1,4 +1,4 @@
-# Customer Churn Prediction System
+# Customer Churn Analysis
 
 > **Advanced Machine Learning Pipeline for Customer Retention Analytics**
 
@@ -37,8 +37,8 @@ Customer churn prediction is critical for business sustainability. This project 
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/customer-churn-prediction.git
-cd customer-churn-prediction
+git clone https://github.com/yourusername/customer-churn-analysis.git
+cd customer-churn-analysis
 ```
 
 2. **Create virtual environment**
@@ -87,7 +87,7 @@ streamlit run app/streamlit_app.py
 
 ### Project Structure
 ```
-customer-churn-prediction/
+customer-churn-analysis/
 ├── app/
 │   └── streamlit_app.py        # Main dashboard application
 ├── data/
@@ -191,8 +191,8 @@ pytest tests/test_preprocessing.py
 
 ### Single Container
 ```bash
-docker build -t customer-churn-prediction .
-docker run -p 8501:8501 -p 8000:8000 customer-churn-prediction
+docker build -t customer-churn-analysis .
+docker run -p 8501:8501 -p 8000:8000 customer-churn-analysis
 ```
 
 ### Docker Compose (Recommended)
@@ -226,7 +226,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Project Maintainer** - [your.email@example.com](mailto:your.email@example.com)
 
-Project Link: [https://github.com/yourusername/customer-churn-prediction](https://github.com/yourusername/customer-churn-prediction)
+Project Link: [https://github.com/yourusername/customer-churn-analysis](https://github.com/yourusername/customer-churn-analysis)
 
 ---
 

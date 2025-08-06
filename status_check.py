@@ -1,5 +1,5 @@
 """
-System status check for Customer Churn Fire Project
+System status check for Customer Churn Analysis
 """
 import os
 import joblib
@@ -46,7 +46,7 @@ def check_system_status():
 if __name__ == "__main__":
     status = check_system_status()
     
-    print("🔥 Customer Churn Fire Project - System Status")
+    print("� Customer Churn Analysis - System Status")
     print("=" * 50)
     
     # Data status

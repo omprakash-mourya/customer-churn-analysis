@@ -1,5 +1,5 @@
 """
-Main entry point for Customer Churn Fire Project.
+Main entry point for Customer Churn Analysis.
 
 This script provides a command-line interface to run various components
 of the customer churn prediction pipeline.

@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 import joblib
 
-print("Customer Churn Fire Project - Final Status Check")
+print("Customer Churn Analysis - System Status Check")
 print("=" * 50)
 
 # Check data
