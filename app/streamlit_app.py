@@ -16,8 +16,8 @@ import streamlit as st
 
 # Page configuration - MUST be the first Streamlit command
 st.set_page_config(
-    page_title="Customer Churn Prediction System",
-    page_icon="�",
+    page_title="Customer Churn Analysis",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -134,7 +134,9 @@ if 'shap_explainer' not in st.session_state:
 def load_sample_data():
     """Load sample data for demo."""
     try:
-        data_path = "data/churn_data.csv"
+        # Get absolute path relative to project root
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        data_path = os.path.join(project_root, "data", "churn_data.csv")
         if os.path.exists(data_path):
             return pd.read_csv(data_path)
         else:
@@ -146,10 +148,12 @@ def load_sample_data():
 def load_model():
     """Load the trained model."""
     try:
-        model_path = "models/best_churn_model.joblib"
+        # Get absolute path relative to project root
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        model_path = os.path.join(project_root, "models", "best_churn_model.joblib")
         if not os.path.exists(model_path):
             # Try to find any model file
-            model_dir = "models/"
+            model_dir = os.path.join(project_root, "models")
             if os.path.exists(model_dir):
                 model_files = [f for f in os.listdir(model_dir) if f.endswith('.joblib')]
                 if model_files:
