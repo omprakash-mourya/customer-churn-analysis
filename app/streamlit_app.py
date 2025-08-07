@@ -11,54 +11,8 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import reques    # Navigation sidebar
-    st.side    # Status information
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("## 🔧 System Status")
-    
-    # Show different status based on environment
-    if IS_STREAMLIT_CLOUD:
-        st.sidebar.markdown("🌐 **Environment**: Streamlit Cloud")
-        st.sidebar.markdown("✅ **Prediction**: Built-in Model")
-        st.sidebar.markdown("� **Features**: Core Functionality")
-    else:
-        # API Status for local development
-        if api_status:
-            st.sidebar.markdown("✅ **FastAPI**: Connected")
-            if model_info:
-                st.sidebar.markdown(f"✅ **Model**: {'Loaded' if model_info.get('model_loaded', False) else 'Not Loaded'}")
-                st.sidebar.markdown(f"📊 **API Version**: {model_info.get('version', 'Simple API')}")
-            else:
-                st.sidebar.markdown("⚠️ **Model**: Info unavailable")
-        else:
-            st.sidebar.markdown("❌ **FastAPI**: Disconnected")
-            st.sidebar.markdown("⚠️ **Model**: Not accessible")enu")
-    st.sidebar.markdown("Select a section:")
-    
-    # Define menu options based on environment
-    if IS_STREAMLIT_CLOUD:
-        # Simplified menu for Streamlit Cloud (hide API-dependent features)
-        menu_options = [
-            "🏠 Project Overview", 
-            "📊 Data Analysis", 
-            "🎯 Make Predictions"
-        ]
-    else:
-        # Full menu for local development
-        menu_options = [
-            "🏠 Project Overview", 
-            "📊 Data Analysis", 
-            "🎯 Make Predictions", 
-            "📈 Model Details", 
-            "🔄 Data Monitoring", 
-            "🔗 API Documentation"
-        ]
-    
-    page = st.sidebar.selectbox(
-        "Choose Option",
-        menu_options,
-        label_visibility="collapsed"
-    ) json
+import requests
+import json
 import os
 import joblib
 import warnings
@@ -849,30 +803,6 @@ def show_model_performance(model_info):
     """How well the model works."""
     st.markdown("## 📈 How Good Is Our Model?")
     
-    if IS_STREAMLIT_CLOUD:
-        st.info("🌐 **Streamlit Cloud Mode** - Using built-in prediction logic")
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Model Status", "Built-in")
-        with col2:
-            st.metric("Prediction Type", "Rule-based")
-        with col3:
-            st.metric("Data Points", "10 Customer Features")
-            
-        st.markdown("### Built-in Model Features")
-        st.markdown("""
-        Our cloud-based prediction system analyzes:
-        - **Customer Age**: Younger and older customers have different patterns
-        - **Account Balance**: Zero balance indicates higher churn risk
-        - **Product Usage**: Single products or too many products increase risk
-        - **Activity Level**: Inactive members are more likely to churn
-        - **Credit Score**: Lower scores correlate with higher churn
-        - **Geography**: Different regions show varying churn patterns
-        - **Gender**: Slight differences in churn behavior
-        """)
-        return
-    
     if model_info and model_info.get('model_loaded', False):
         st.success("✅ Model is working")
         
@@ -917,23 +847,6 @@ def show_model_performance(model_info):
 def show_drift_detection(api_status):
     """Show data drift detection interface."""
     st.markdown("## 🔄 Data Drift Detection")
-    
-    if IS_STREAMLIT_CLOUD:
-        st.info("🌐 **Streamlit Cloud Mode** - Advanced drift detection not available")
-        st.markdown("""
-        Data drift detection requires the full API setup. In cloud mode, we use a 
-        simplified prediction system that's designed to be robust against data changes.
-        
-        **What is Data Drift?**
-        Data drift occurs when the statistical properties of input data change over time, 
-        potentially degrading model performance.
-        
-        **Cloud Model Benefits:**
-        - ✅ Rule-based predictions are less sensitive to data drift
-        - ✅ No complex model dependencies
-        - ✅ Consistent performance across different data distributions
-        """)
-        return
     
     if not api_status:
         st.error("❌ FastAPI service is not available for drift detection.")
