@@ -26,8 +26,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# API configuration
+# API configuration - for local development
 FASTAPI_URL = "http://127.0.0.1:8004"
+
+# Check if we're running on Streamlit Cloud
+import os
+IS_STREAMLIT_CLOUD = os.getenv("STREAMLIT_SHARING") or "streamlit.app" in os.getenv("HOSTNAME", "")
 
 # Custom styling
 st.markdown("""
@@ -113,6 +117,10 @@ def create_sample_data():
 
 def check_api_connection():
     """Test connection to the prediction API."""
+    # On Streamlit Cloud, API is not available
+    if IS_STREAMLIT_CLOUD:
+        return False
+        
     try:
         response = requests.get(f"{FASTAPI_URL}/health", timeout=5)
         return response.status_code == 200
@@ -129,8 +137,116 @@ def get_model_info():
     except:
         return None
 
+def make_local_prediction(customer_data):
+    """Make prediction using local logic (for Streamlit Cloud)."""
+    try:
+        # Simple rule-based prediction logic
+        # This works without needing the trained model file
+        
+        # Extract features
+        age = customer_data["Age"]
+        balance = customer_data["Balance"] 
+        num_products = customer_data["NumOfProducts"]
+        is_active = customer_data["IsActiveMember"]
+        credit_score = customer_data["CreditScore"]
+        geography = customer_data["Geography"]
+        gender = customer_data["Gender"]
+        
+        # Simple scoring logic based on common churn patterns
+        churn_score = 0.0
+        
+        # Age factor (middle-aged customers more stable)
+        if age > 60:
+            churn_score += 0.25
+        elif age < 25:
+            churn_score += 0.35
+        else:
+            churn_score += 0.15
+            
+        # Balance factor (zero balance = much higher churn)
+        if balance == 0:
+            churn_score += 0.45
+        elif balance < 25000:
+            churn_score += 0.25
+        elif balance > 100000:
+            churn_score += 0.1
+        else:
+            churn_score += 0.15
+            
+        # Products factor (1 product = higher churn, >2 = also higher)
+        if num_products == 1:
+            churn_score += 0.35
+        elif num_products > 2:
+            churn_score += 0.25
+        else:
+            churn_score += 0.1
+            
+        # Activity factor (inactive = much higher churn)
+        if not is_active:
+            churn_score += 0.4
+        else:
+            churn_score += 0.1
+            
+        # Credit score factor
+        if credit_score < 600:
+            churn_score += 0.25
+        elif credit_score > 750:
+            churn_score += 0.05
+        else:
+            churn_score += 0.15
+            
+        # Geography factor (Germany historically higher churn)
+        if geography == "Germany":
+            churn_score += 0.15
+        elif geography == "France":
+            churn_score += 0.1
+        else:  # Spain
+            churn_score += 0.12
+            
+        # Gender factor (slight difference)
+        if gender == "Female":
+            churn_score += 0.05
+        else:
+            churn_score += 0.08
+            
+        # Normalize to probability (cap at 95%)
+        churn_probability = min(churn_score / 1.5, 0.95)
+        prediction = "Will Churn" if churn_probability > 0.5 else "Will Stay"
+        
+        # Determine confidence and risk
+        if churn_probability > 0.8:
+            confidence = "High"
+            risk_category = "High Risk"
+        elif churn_probability > 0.6:
+            confidence = "Medium"
+            risk_category = "High Risk"
+        elif churn_probability > 0.4:
+            confidence = "Medium" 
+            risk_category = "Medium Risk"
+        elif churn_probability > 0.2:
+            confidence = "Medium"
+            risk_category = "Low Risk"
+        else:
+            confidence = "High"
+            risk_category = "Low Risk"
+            
+        return {
+            "prediction": prediction,
+            "churn_probability": churn_probability,
+            "confidence": confidence,
+            "risk_category": risk_category
+        }
+        
+    except Exception as e:
+        st.error(f"Local prediction error: {e}")
+        return None
+
 def make_prediction_api(customer_data):
-    """Make prediction using FastAPI."""
+    """Make prediction using FastAPI or local logic."""
+    # If on Streamlit Cloud or API not available, use local prediction
+    if IS_STREAMLIT_CLOUD or not check_api_connection():
+        return make_local_prediction(customer_data)
+    
     try:
         # Validate that all required fields are present and not None
         required_fields = ["CreditScore", "Geography", "Gender", "Age", "Tenure", "Balance", "NumOfProducts", "HasCrCard", "IsActiveMember", "EstimatedSalary"]
@@ -212,10 +328,11 @@ def make_prediction_api(customer_data):
         return None
 
 def make_batch_prediction_api(customers_data):
-    """Make batch prediction using FastAPI (simulate with multiple single calls)."""
+    """Make batch prediction using FastAPI or local logic."""
     try:
         results = []
         for customer in customers_data:
+            # Use the same logic as single prediction (API or local)
             result = make_prediction_api(customer)
             if result:
                 results.append(result)
@@ -419,13 +536,14 @@ def show_prediction_page(api_status):
     """Predict if a customer will leave the bank."""
     st.markdown("## 🎯 Will This Customer Leave?")
     
-    if not api_status:
-        st.error("❌ The prediction service isn't running. Please start it first.")
-        st.markdown("### Start the service:")
-        st.code("python -m uvicorn app.advanced_api:app --reload --host 127.0.0.1 --port 8000")
-        return
-    
-    st.success("✅ Prediction service is ready")
+    if IS_STREAMLIT_CLOUD:
+        st.info("🌐 **Running on Streamlit Cloud** - Using built-in prediction model")
+    elif not api_status:
+        st.warning("⚠️ **API Not Connected** - Using local prediction model")
+        st.markdown("### To use the full API features locally:")
+        st.code("python working_api.py")
+    else:
+        st.success("✅ **API Connected** - Using advanced prediction model")
     
     # Single prediction
     st.markdown("### Check One Customer")
