@@ -286,17 +286,17 @@ def main():
         st.rerun()
     
     # Main content based on page selection
-    if page == "🏠 Home & Problem Statement":
+    if page == "🏠 Project Overview":
         show_home_page(api_status)
-    elif page == "📊 EDA & Data Insights":
+    elif page == "📊 Data Analysis":
         show_eda_page()
-    elif page == "🎯 Churn Prediction":
+    elif page == "🎯 Make Predictions":
         show_prediction_page(api_status)
-    elif page == "📈 Model Performance":
+    elif page == "📈 Model Details":
         show_model_performance(model_info)
-    elif page == "🔄 Data Drift Detection":
+    elif page == "🔄 Data Monitoring":
         show_drift_detection(api_status)
-    elif page == "🔗 API Integration":
+    elif page == "🔗 API Documentation":
         show_api_integration(api_status)
 
 def show_home_page(api_status):
