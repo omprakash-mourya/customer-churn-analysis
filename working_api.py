@@ -18,7 +18,8 @@ class PredictionRequest(BaseModel):
 
 # Load model once at startup
 MODEL = None
-model_path = r"C:\Users\ommou\OneDrive\Desktop\Custommer_churn_analysis\CustomerChurnFireProject\models\best_churn_model.joblib"
+# Use relative path that works on any system
+model_path = os.path.join(os.path.dirname(__file__), "models", "best_churn_model.joblib")
 
 try:
     if os.path.exists(model_path):
