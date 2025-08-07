@@ -1,53 +1,56 @@
-# 🚀 Customer Churn Analysis - Production Enhancements
+# Customer Churn Analysis - API Documentation
 
-## 🎯 Overview
-This repository contains advanced enhancements for the Customer Churn Analysis system, featuring production-ready FastAPI service, comprehensive CI/CD pipeline, and real-time model monitoring capabilities.
+## Overview
+This document covers the FastAPI service implementation for the Customer Churn Analysis system, including real-time prediction capabilities and monitoring features.
 
-## ✨ New Features
+## Live Application
+🌐 **Access the live demo**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
 
-### 🌐 Advanced FastAPI Service
-- **Real-time Predictions**: Single and batch prediction endpoints
-- **Data Drift Detection**: Statistical analysis using Kolmogorov-Smirnov tests
-- **Health Monitoring**: Comprehensive system health checks
-- **Interactive Documentation**: Auto-generated Swagger UI
-- **Performance Tracking**: Model performance metrics and monitoring
-
-### 🔄 CI/CD Pipeline
-- **Multi-Python Testing**: Automated testing across Python 3.10 and 3.11
-- **Code Quality**: Black formatting, Flake8 linting, Bandit security checks
-- **Model Validation**: Automated model performance validation
-- **Deployment Monitoring**: Health checks and status monitoring
-
-### 📊 Model Monitoring
-- **Data Drift Detection**: Real-time statistical monitoring
-- **Performance Metrics**: Accuracy, precision, recall tracking
-- **Alert System**: Automated alerts for model degradation
-- **Drift Visualization**: Statistical analysis reports
-
-## 🚀 Quick Start
+## Features
 
 ### FastAPI Service
+- Real-time prediction endpoints for single and batch processing
+- Data drift detection using statistical analysis
+- System health monitoring and status checks
+- Interactive API documentation via Swagger UI
+- Model performance tracking and metrics
+
+### CI/CD Pipeline
+- Automated testing across multiple Python versions
+- Code quality checks with Black, Flake8, and Bandit
+- Model validation and performance verification
+- Deployment monitoring and health checks
+
+### Model Monitoring
+- Real-time statistical drift detection
+- Performance metrics tracking (accuracy, precision, recall)
+- Automated alert system for model degradation
+- Statistical analysis and reporting
+
+## Quick Start
+
+### API Server Setup
 ```bash
-# Install dependencies
+# Install required packages
 pip install fastapi uvicorn scipy scikit-learn pandas numpy
 
-# Run the API server
+# Start the API server
 cd app
 python -m uvicorn advanced_api:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### API Endpoints
-- `GET /` - Service status and information
-- `POST /predict` - Single prediction
+### Available Endpoints
+- `GET /` - Service information and status
+- `POST /predict` - Single customer prediction
 - `POST /predict-batch` - Batch predictions
-- `GET /health` - Health check
-- `GET /model-info` - Model metadata
-- `POST /check-drift` - Data drift detection
+- `GET /health` - System health check
+- `GET /model-info` - Model metadata and information
+- `POST /check-drift` - Data drift analysis
 - `GET /docs` - Interactive API documentation
 
-## 📈 API Usage Examples
+## Usage Examples
 
-### Single Prediction
+### Single Customer Prediction
 ```python
 import requests
 

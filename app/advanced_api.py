@@ -1,6 +1,6 @@
 """
-Advanced FastAPI Service for Customer Churn Prediction
-Features: Real-time predictions, model monitoring, health checks
+FastAPI Service for Customer Churn Prediction
+Real-time predictions, model monitoring, and health checks
 """
 
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
@@ -36,7 +36,7 @@ drift_detector = None
 startup_time = datetime.now()
 
 class PredictionRequest(BaseModel):
-    """Request schema for predictions - Bank Churn Dataset"""
+    """Request schema for bank churn predictions"""
     CreditScore: int = Field(..., ge=300, le=850, description="Customer credit score")
     Geography: str = Field(..., description="Country (France/Germany/Spain)")
     Gender: str = Field(..., description="Gender (Male/Female)")
@@ -94,7 +94,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Customer Churn Prediction API",
-    description="Advanced ML API for real-time customer churn predictions with monitoring",
+    description="Machine Learning API for real-time customer churn predictions with monitoring",
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -128,13 +128,13 @@ async def load_model():
         for path in model_paths:
             if os.path.exists(path):
                 model = joblib.load(path)
-                logger.info(f"✅ Model loaded from: {path}")
+                logger.info(f"Model loaded from: {path}")
                 break
         
         # Load preprocessing components if available
         if os.path.exists("../models/scaler.joblib"):
             scaler = joblib.load("../models/scaler.joblib")
-            logger.info("✅ Scaler loaded successfully")
+            logger.info("Scaler loaded successfully")
             
         # Define feature names for bank churn model (matches training exactly)
         feature_names = [
@@ -152,14 +152,14 @@ async def load_model():
             X_dummy = np.random.rand(100, len(feature_names))
             y_dummy = np.random.choice([0, 1], 100)
             model.fit(X_dummy, y_dummy)
-            logger.info("⚠️ Using dummy model - replace with actual trained model")
+            logger.info("Using dummy model - replace with actual trained model")
             
     except Exception as e:
-        logger.error(f"❌ Error loading model: {e}")
+        logger.error(f"Error loading model: {e}")
         raise
 
 def preprocess_features(data: PredictionRequest) -> np.ndarray:
-    """Preprocess input features for prediction - matches training pipeline exactly"""
+    """Preprocess input features for prediction - matches training pipeline"""
     try:
         # Create a DataFrame from the input data (matches training format)
         df = pd.DataFrame([{
@@ -208,7 +208,7 @@ def preprocess_features(data: PredictionRequest) -> np.ndarray:
         return feature_array
         
     except Exception as e:
-        logger.error(f"❌ Error in preprocessing: {e}")
+        logger.error(f"Error in preprocessing: {e}")
         raise HTTPException(status_code=400, detail=f"Feature preprocessing error: {e}")
 
 def log_prediction(prediction_type: str, input_data: dict, result: dict):
@@ -359,10 +359,8 @@ async def predict_churn(
         )
         
     except Exception as e:
-        logger.error(f"❌ Prediction error: {e}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
-
-@app.post("/predict/batch")
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")@app.post("/predict/batch")
 async def predict_batch(request: BatchPredictionRequest):
     """Batch prediction endpoint"""
     

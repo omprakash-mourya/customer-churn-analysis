@@ -1,35 +1,36 @@
 # Customer Churn Analysis
 
-> **Advanced Machine Learning Pipeline for Customer Retention Analytics**
+A comprehensive machine learning solution for predicting customer churn using advanced analytics and real-time prediction capabilities.
 
-A comprehensive end-to-end machine learning solution for predicting customer churn, featuring XGBoost modeling with SHAP explainability, interactive dashboards, and real-time API endpoints for business integration.
+## Live Demo
+🌐 **Access the live application**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red.svg)](https://streamlit.io)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Real--time-green.svg)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-green.svg)](https://fastapi.tiangolo.com)
 [![XGBoost](https://img.shields.io/badge/XGBoost-ML-orange.svg)](https://xgboost.readthedocs.io)
 [![SHAP](https://img.shields.io/badge/SHAP-Explainable-purple.svg)](https://shap.readthedocs.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎯 Project Overview
+## Project Overview
 
-Customer churn prediction is critical for business sustainability. This project delivers a production-ready machine learning system that:
+This project implements a machine learning solution for customer churn prediction using bank customer data. The system provides:
 
-- **Predicts customer churn** with 87% accuracy using advanced ML techniques
-- **Provides actionable insights** through SHAP explanations and feature importance analysis  
-- **Enables business integration** via REST API endpoints and interactive dashboards
-- **Demonstrates ROI** through cost-benefit analysis and retention simulations
+- **Machine Learning Model** with 91% ROC-AUC score using Random Forest
+- **Interactive Web Interface** for real-time predictions and analysis
+- **API Endpoints** for integration with business systems
+- **Model Explainability** using SHAP values for transparent decision making
 
-### Business Impact
-- **87% Prediction Accuracy** with 0.91 ROC-AUC score
-- **65% Intervention Success Rate** for at-risk customers  
-- **$500K+ Annual Revenue Protection** through proactive retention
-- **250%+ ROI** compared to random customer targeting
+### Key Features
+- **High Accuracy**: 87% prediction accuracy with comprehensive evaluation metrics
+- **Real-time Predictions**: Single customer and batch prediction capabilities
+- **Business Integration**: REST API with detailed documentation
+- **Data Insights**: Feature importance analysis and customer segmentation
 
-## � Quick Start
+## Getting Started
 
 ### Prerequisites
-- Python 3.9 or higher
+- Python 3.9+
 - Git
 - Virtual environment (recommended)
 
@@ -37,11 +38,11 @@ Customer churn prediction is critical for business sustainability. This project 
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/customer-churn-analysis.git
+git clone https://github.com/omprakash-mourya/customer-churn-analysis.git
 cd customer-churn-analysis
 ```
 
-2. **Create virtual environment**
+2. **Set up environment**
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -200,37 +201,33 @@ docker run -p 8501:8501 -p 8000:8000 customer-churn-analysis
 docker-compose up -d
 ```
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Please see our contributing guidelines:
+Contributions are welcome! To contribute:
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -m 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- **XGBoost Team** for the excellent gradient boosting framework
-- **SHAP Contributors** for model interpretability tools  
-- **Streamlit Team** for the intuitive dashboard framework
-- **FastAPI** for the high-performance web framework
-- **Open Source Community** for the foundational libraries
+- XGBoost team for the gradient boosting framework
+- SHAP contributors for model interpretability
+- Streamlit for the dashboard framework
+- FastAPI for the web framework
+- Scikit-learn for machine learning utilities
 
-## � Contact
+## Contact
 
-**Project Maintainer** - [your.email@example.com](mailto:your.email@example.com)
+Project Link: [https://github.com/omprakash-mourya/customer-churn-analysis](https://github.com/omprakash-mourya/customer-churn-analysis)
 
-Project Link: [https://github.com/yourusername/customer-churn-analysis](https://github.com/yourusername/customer-churn-analysis)
-
----
-
-⭐ **If this project helped you, please consider giving it a star!** ⭐
+Live Demo: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
                  Predicted
                 No  Churn
 Actual    No   2156    244

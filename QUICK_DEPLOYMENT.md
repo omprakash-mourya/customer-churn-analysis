@@ -1,11 +1,14 @@
-# 🚀 Quick Deployment Guide for Production Enhancements
+# API Deployment Guide
 
-## 🎯 Overview
-This guide helps you quickly deploy the enhanced Customer Churn Analysis system with advanced FastAPI service and monitoring capabilities.
+## Overview
+This guide covers the deployment process for the Customer Churn Analysis API service with monitoring capabilities.
 
-## ⚡ Quick Start Commands
+## Live Demo
+🌐 **Access the application**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
 
-### 1. Setup FastAPI Service
+## Local Development
+
+### Setup Instructions
 ```bash
 # Navigate to project directory
 cd c:\Users\ommou\OneDrive\Desktop\Custommer_churn_analysis\CustomerChurnFireProject
