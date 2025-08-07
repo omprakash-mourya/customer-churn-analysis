@@ -1,52 +1,52 @@
-# Customer Churn Analysis - API Documentation
+# Customer Churn Prediction System - API Setup
 
-## Overview
-This document covers the FastAPI service implementation for the Customer Churn Analysis system, including real-time prediction capabilities and monitoring features.
+## What This Is
+This document explains how to use the FastAPI service for predicting customer churn. The API lets you get predictions for single customers or upload files with multiple customers.
 
-## Live Application
-🌐 **Access the live demo**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
+## Try It Online
+🌐 **See it working**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
 
-## Features
+## What It Can Do
 
-### FastAPI Service
-- Real-time prediction endpoints for single and batch processing
-- Data drift detection using statistical analysis
-- System health monitoring and status checks
-- Interactive API documentation via Swagger UI
-- Model performance tracking and metrics
+### API Service
+- Get predictions for one customer or many customers at once
+- Check if your data has changed over time
+- Monitor if the system is working properly
+- Browse API documentation through web interface
+- Track how well the model is performing
 
-### CI/CD Pipeline
-- Automated testing across multiple Python versions
-- Code quality checks with Black, Flake8, and Bandit
-- Model validation and performance verification
-- Deployment monitoring and health checks
+### Automated Testing
+- Tests run automatically when code changes
+- Code quality checks to keep things clean
+- Model testing to make sure predictions work
+- Health monitoring for the deployed system
 
 ### Model Monitoring
-- Real-time statistical drift detection
-- Performance metrics tracking (accuracy, precision, recall)
-- Automated alert system for model degradation
-- Statistical analysis and reporting
+- Detect when incoming data looks different than training data
+- Track prediction accuracy over time
+- Alert when model performance drops
+- Generate reports on system performance
 
-## Quick Start
+## Getting Started
 
-### API Server Setup
+### Start the API Server
 ```bash
-# Install required packages
+# Install what you need
 pip install fastapi uvicorn scipy scikit-learn pandas numpy
 
-# Start the API server
+# Run the server
 cd app
 python -m uvicorn advanced_api:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Available Endpoints
-- `GET /` - Service information and status
-- `POST /predict` - Single customer prediction
-- `POST /predict-batch` - Batch predictions
-- `GET /health` - System health check
-- `GET /model-info` - Model metadata and information
-- `POST /check-drift` - Data drift analysis
-- `GET /docs` - Interactive API documentation
+### What You Can Do
+- `GET /` - Check service status
+- `POST /predict` - Get prediction for one customer
+- `POST /predict-batch` - Get predictions for multiple customers
+- `GET /health` - Check if everything is working
+- `GET /model-info` - See model details
+- `POST /check-drift` - Check if data has changed
+- `GET /docs` - View API documentation
 
 ## Usage Examples
 

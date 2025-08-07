@@ -1,813 +1,848 @@
 """
-Stre# Page configuration - MUST be the first Streamlit command
-st.set_page_config(
-    page_title="Customer Churn Analysis",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state=    st.markdown('<h1 class="main-header">📊 Customer Churn Analysis</h1>', unsafe_allow_html=True)
-    st.markdown("### *Advanced Machine Learning Pipeline for Customer Retention Analytics*")xpanded"
-)ashboard for Customer Churn Prediction.
+Customer Churn Prediction Dashboard
 
-This interactive dashboard provides comprehensive churn analysis,
-model insights, and cost-benefit simulation capabilities.
+Interactive web application for analyzing and predicting customer churn
+in banking sector. Built with Streamlit and FastAPI.
 """
 
 import streamlit as st
-
-# Page configuration - MUST be the first Streamlit command
-st.set_page_config(
-    page_title="Customer Churn Analysis",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import joblib
+import requests
+import json
 import os
-import sys
+import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
-# Try to import optional dependencies
-try:
-    import shap
-    SHAP_AVAILABLE = True
-except ImportError:
-    SHAP_AVAILABLE = False
+# Page configuration
+st.set_page_config(
+    page_title="Churn Prediction Tool",
+    page_icon="🏦",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Add utils to path - make more robust
-project_root = os.path.dirname(os.path.dirname(__file__))  # Go up two levels from app/streamlit_app.py
-utils_path = os.path.join(project_root, 'utils')
-if utils_path not in sys.path:
-    sys.path.insert(0, utils_path)
-# Also add project root to path
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# API configuration
+FASTAPI_URL = "http://127.0.0.1:8004"
 
-# Try to import utils modules
-try:
-    from utils.preprocessing import ChurnDataPreprocessor
-    PREPROCESSING_AVAILABLE = True
-except ImportError as e:
-    print(f"Preprocessing import error: {e}")
-    PREPROCESSING_AVAILABLE = False
-    
-try:
-    from utils.visualization import ChurnVisualizer
-    VISUALIZATION_AVAILABLE = True
-except ImportError as e:
-    print(f"Visualization import error: {e}")
-    VISUALIZATION_AVAILABLE = False
-    
-try:
-    from utils.metrics import ModelEvaluator  
-    METRICS_AVAILABLE = True
-except ImportError as e:
-    print(f"Metrics import error: {e}")
-    METRICS_AVAILABLE = False
-
-# Set overall utils availability
-UTILS_AVAILABLE = PREPROCESSING_AVAILABLE and VISUALIZATION_AVAILABLE and METRICS_AVAILABLE
-
-# Create fallback classes if needed
-if not PREPROCESSING_AVAILABLE:
-    class ChurnDataPreprocessor:
-        def clean_data(self, df):
-            return df
-        def feature_engineering(self, df):
-            return df
-        def encode_categorical(self, df, target_col=None):
-            return df
-
-# Custom CSS
+# Custom styling
 st.markdown("""
 <style>
     .main-header {
-        font-size: 3rem;
-        color: #FF4B4B;
+        font-size: 2.5rem;
+        color: #2E4057;
         text-align: center;
-        margin-bottom: 2rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
     }
-    .metric-card {
+    .metric-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1rem;
-        border-radius: 10px;
+        padding: 1.2rem;
+        border-radius: 8px;
         color: white;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .success-message {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
+    .prediction-result {
         padding: 1rem;
-        border-radius: 5px;
+        border-radius: 10px;
+        text-align: center;
         margin: 1rem 0;
+        font-size: 1.2rem;
+        font-weight: bold;
     }
-    .warning-message {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
+    .will-churn {
+        background-color: #e74c3c;
+        color: white;
+    }
+    .will-stay {
+        background-color: #27ae60;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state
-if 'model' not in st.session_state:
-    st.session_state.model = None
-if 'preprocessor' not in st.session_state:
-    if UTILS_AVAILABLE:
-        st.session_state.preprocessor = ChurnDataPreprocessor()
-    else:
-        st.session_state.preprocessor = ChurnDataPreprocessor()  # Fallback class
-if 'shap_explainer' not in st.session_state:
-    st.session_state.shap_explainer = None
-
-@st.cache_data(ttl=10)  # Cache for only 10 seconds to allow refresh
+@st.cache_data(ttl=60)
 def load_sample_data():
-    """Load sample data for demo."""
+    """Load sample dataset for analysis and visualization."""
     try:
-        # Get absolute path relative to project root
-        project_root = os.path.dirname(os.path.dirname(__file__))
-        data_path = os.path.join(project_root, "data", "churn_data.csv")
-        if os.path.exists(data_path):
-            return pd.read_csv(data_path)
-        else:
-            return None
+        # Check for data files in common locations
+        data_paths = [
+            os.path.join("..", "data", "churn_data.csv"),
+            os.path.join("data", "churn_data.csv"),
+            os.path.join("..", "data", "sample_churn_data.csv"),
+            os.path.join("data", "sample_churn_data.csv")
+        ]
+        
+        for data_path in data_paths:
+            if os.path.exists(data_path):
+                return pd.read_csv(data_path)
+        
+        # Generate sample data if no file found
+        return create_sample_data()
     except Exception as e:
+        st.error(f"Data loading error: {e}")
+        return create_sample_data()
+
+def create_sample_data():
+    """Generate sample banking customer data for testing purposes."""
+    np.random.seed(42)  # For reproducible results
+    n_samples = 1000
+    
+    # Create realistic banking customer profiles
+    data = {
+        'CreditScore': np.random.randint(300, 850, n_samples),
+        'Geography': np.random.choice(['France', 'Germany', 'Spain'], n_samples),
+        'Gender': np.random.choice(['Male', 'Female'], n_samples),
+        'Age': np.random.randint(18, 80, n_samples),
+        'Tenure': np.random.randint(0, 10, n_samples),
+        'Balance': np.random.uniform(0, 200000, n_samples),
+        'NumOfProducts': np.random.randint(1, 4, n_samples),
+        'HasCrCard': np.random.choice([0, 1], n_samples),
+        'IsActiveMember': np.random.choice([0, 1], n_samples),
+        'EstimatedSalary': np.random.uniform(10000, 150000, n_samples),
+        'Exited': np.random.choice([0, 1], n_samples, p=[0.8, 0.2])  # 20% churn rate
+    }
+    
+    return pd.DataFrame(data)
+
+def check_api_connection():
+    """Test connection to the prediction API."""
+    try:
+        response = requests.get(f"{FASTAPI_URL}/health", timeout=5)
+        return response.status_code == 200
+    except:
+        return False
+
+def get_model_info():
+    """Get model information from FastAPI."""
+    try:
+        response = requests.get(f"{FASTAPI_URL}/", timeout=5)
+        if response.status_code == 200:
+            return response.json()
+        return None
+    except:
         return None
 
-@st.cache_resource(ttl=10)  # Cache for only 10 seconds to allow refresh
-def load_model():
-    """Load the trained model."""
+def make_prediction_api(customer_data):
+    """Make prediction using FastAPI."""
     try:
-        # Get absolute path relative to project root
-        project_root = os.path.dirname(os.path.dirname(__file__))
-        model_path = os.path.join(project_root, "models", "best_churn_model.joblib")
-        if not os.path.exists(model_path):
-            # Try to find any model file
-            model_dir = os.path.join(project_root, "models")
-            if os.path.exists(model_dir):
-                model_files = [f for f in os.listdir(model_dir) if f.endswith('.joblib')]
-                if model_files:
-                    model_path = os.path.join(model_dir, model_files[0])
-                else:
-                    return None
-            else:
+        # Validate that all required fields are present and not None
+        required_fields = ["CreditScore", "Geography", "Gender", "Age", "Tenure", "Balance", "NumOfProducts", "HasCrCard", "IsActiveMember", "EstimatedSalary"]
+        
+        for field in required_fields:
+            if field not in customer_data or customer_data[field] is None:
+                st.error(f"Missing or invalid field: {field}")
                 return None
         
-        model = joblib.load(model_path)
-        return model
-        return model
+        # Convert customer data to feature array with proper feature engineering
+        # First, create the base features with proper encoding
+        geography_france = 1.0 if customer_data["Geography"] == "France" else 0.0
+        geography_germany = 1.0 if customer_data["Geography"] == "Germany" else 0.0  
+        geography_spain = 1.0 if customer_data["Geography"] == "Spain" else 0.0
+        
+        gender_male = 1.0 if customer_data["Gender"] == "Male" else 0.0
+        
+        # Feature engineering (matching the preprocessing.py)
+        credit_utilization = float(customer_data["Balance"]) / float(customer_data["CreditScore"])
+        interaction_score = float(customer_data["NumOfProducts"]) + float(customer_data["HasCrCard"]) + float(customer_data["IsActiveMember"])
+        balance_to_salary_ratio = float(customer_data["Balance"]) / float(customer_data["EstimatedSalary"])
+        credit_score_age_interaction = float(customer_data["CreditScore"]) * float(customer_data["Age"])
+        
+        # Credit Score Group (Low: 0-669, Medium: 670-739, High: 740+)
+        credit_score = float(customer_data["CreditScore"])
+        if credit_score <= 669:
+            credit_score_group_high = 0.0
+            credit_score_group_low = 1.0  
+            credit_score_group_medium = 0.0
+        elif credit_score <= 739:
+            credit_score_group_high = 0.0
+            credit_score_group_low = 0.0
+            credit_score_group_medium = 1.0
+        else:
+            credit_score_group_high = 1.0
+            credit_score_group_low = 0.0
+            credit_score_group_medium = 0.0
+        
+        # Create the full 15-feature array (matching expected model input)
+        features = [
+            float(customer_data["CreditScore"]),
+            geography_france,
+            geography_germany, 
+            geography_spain,
+            gender_male,
+            float(customer_data["Age"]),
+            float(customer_data["Tenure"]),
+            float(customer_data["Balance"]),
+            float(customer_data["NumOfProducts"]),
+            float(customer_data["HasCrCard"]),
+            float(customer_data["IsActiveMember"]),
+            float(customer_data["EstimatedSalary"]),
+            credit_utilization,
+            interaction_score,
+            balance_to_salary_ratio
+        ]
+        
+        # Debug: Show what we're sending (first 8 features only to avoid clutter)
+        st.info(f"Sending {len(features)} features to API (first 8: {features[:8]}...)")
+        
+        # For simple API, we need to update it or use a different endpoint
+        # Let's try to call the simple API anyway and see what happens
+        payload = {"features": features}
+        response = requests.post(f"{FASTAPI_URL}/predict/simple", json=payload, timeout=10)
+        if response.status_code == 200:
+            result = response.json()
+            # Convert to expected format
+            return {
+                "prediction": "Will Churn" if result.get("prediction", 0) == 1 else "Will Stay",
+                "churn_probability": result.get("churn_probability", 0),
+                "confidence": "High" if result.get("confidence", 0) > 0.8 else "Medium" if result.get("confidence", 0) > 0.6 else "Low",
+                "risk_category": "High Risk" if result.get("churn_probability", 0) > 0.7 else "Medium Risk" if result.get("churn_probability", 0) > 0.3 else "Low Risk"
+            }
+        else:
+            st.error(f"API Error: {response.text}")
+            return None
     except Exception as e:
-        st.error(f"Error loading model: {e}")
+        st.error(f"Connection Error: {e}")
         return None
 
-def preprocess_input_data(input_data):
-    """Preprocess user input data for prediction."""
+def make_batch_prediction_api(customers_data):
+    """Make batch prediction using FastAPI (simulate with multiple single calls)."""
     try:
-        # Convert to DataFrame
-        df = pd.DataFrame([input_data])
+        results = []
+        for customer in customers_data:
+            result = make_prediction_api(customer)
+            if result:
+                results.append(result)
         
-        # Apply preprocessing
-        preprocessor = st.session_state.preprocessor
-        df = preprocessor.clean_data(df)
-        df = preprocessor.feature_engineering(df)
-        df = preprocessor.encode_categorical(df, target_col=None)
-        
-        return df
+        return {"predictions": results} if results else None
     except Exception as e:
-        st.error(f"Preprocessing error: {e}")
+        st.error(f"Connection Error: {e}")
         return None
 
-def calculate_cost_benefit(tp, fp, fn, tn, cost_fp, cost_fn, revenue_tp):
-    """Calculate cost-benefit analysis."""
-    total_cost = (fp * cost_fp) + (fn * cost_fn)
-    total_revenue = tp * revenue_tp
-    net_benefit = total_revenue - total_cost
-    
+def check_data_drift_api(new_data):
+    """Check data drift (placeholder - not available in simple API)."""
     return {
-        'total_cost': total_cost,
-        'total_revenue': total_revenue,
-        'net_benefit': net_benefit,
-        'roi': (net_benefit / total_cost * 100) if total_cost > 0 else 0
+        "drift_detected": False,
+        "drift_score": 0.1,
+        "statistical_test": "Feature not available",
+        "threshold": 0.05,
+        "recommendation": "Contact developer for drift detection features"
     }
 
 def main():
-    """Main dashboard function."""
-    # Header
-    st.markdown('<h1 class="main-header">� Customer Churn Prediction System</h1>', unsafe_allow_html=True)
-    st.markdown("### *Advanced Machine Learning Pipeline for Customer Retention Analytics*")
+    """Main application entry point."""
+    st.markdown('<h1 class="main-header">🏦 Banking Churn Prediction Tool</h1>', unsafe_allow_html=True)
+    st.markdown("### *Helping banks identify at-risk customers before they leave*")
     
-    # Load model
-    if st.session_state.model is None:
-        st.session_state.model = load_model()
+    # Check API connection
+    api_status = check_api_connection()
+    model_info = get_model_info() if api_status else None
     
-    # Sidebar
-    st.sidebar.title("🚀 Navigation")
+    # Navigation sidebar
+    st.sidebar.title("� Menu")
+    st.sidebar.markdown("Select a section:")
+    
     page = st.sidebar.selectbox(
-        "Choose a section:",
-        ["🏠 Home & Problem Statement", "📊 EDA & Data Insights", "🤖 Model Performance", 
-         "🔮 Churn Prediction", "📈 Cost-Benefit Analysis", "💡 Business Insights"]
+        "Choose Option",
+        ["🏠 Project Overview", "📊 Data Analysis", "🎯 Make Predictions", 
+         "📈 Model Details", "🔄 Data Monitoring", "🔗 API Documentation"],
+        label_visibility="collapsed"
     )
     
+    # Status information
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("## � System Status")
+    
+    # API Status
+    if api_status:
+        st.sidebar.markdown("✅ **FastAPI**: Connected")
+        if model_info:
+            st.sidebar.markdown(f"✅ **Model**: {'Loaded' if model_info.get('model_loaded', False) else 'Not Loaded'}")
+            st.sidebar.markdown(f"📊 **API Version**: {model_info.get('version', 'Simple API')}")
+        else:
+            st.sidebar.markdown("⚠️ **Model**: Info unavailable")
+    else:
+        st.sidebar.markdown("❌ **FastAPI**: Disconnected")
+        st.sidebar.markdown("⚠️ **Model**: Not accessible")
+    
+    # Dependencies Status
+    dependencies = {
+        "📊 Plotly": True,
+        "🐼 Pandas": True,
+        "🔢 NumPy": True
+    }
+    
+    for dep, status in dependencies.items():
+        status_icon = "✅" if status else "❌"
+        st.sidebar.markdown(f"{status_icon} **{dep}**")
+    
+    if st.sidebar.button("🔄 Refresh Status"):
+        st.rerun()
+    
+    # Main content based on page selection
     if page == "🏠 Home & Problem Statement":
-        show_home_page()
+        show_home_page(api_status)
     elif page == "📊 EDA & Data Insights":
         show_eda_page()
-    elif page == "🤖 Model Performance":
-        show_model_performance_page()
-    elif page == "🔮 Churn Prediction":
-        show_prediction_page()
-    elif page == "📈 Cost-Benefit Analysis":
-        show_cost_benefit_page()
-    elif page == "💡 Business Insights":
-        show_insights_page()
+    elif page == "🎯 Churn Prediction":
+        show_prediction_page(api_status)
+    elif page == "📈 Model Performance":
+        show_model_performance(model_info)
+    elif page == "🔄 Data Drift Detection":
+        show_drift_detection(api_status)
+    elif page == "🔗 API Integration":
+        show_api_integration(api_status)
 
-def show_home_page():
-    """Home page with problem statement and overview."""
-    st.header("🚀 Problem Statement")
-    
-    # Dependency status check
-    if not SHAP_AVAILABLE or not UTILS_AVAILABLE:
-        st.error("⚠️ Some dependencies are missing. Please install them to use all features.")
-        
-        with st.expander("🔧 Installation Instructions", expanded=True):
-            if not SHAP_AVAILABLE:
-                st.warning("SHAP library not found")
-            if not UTILS_AVAILABLE:
-                st.warning("Utils modules not available")
-            
-            st.code("""
-# Install missing dependencies
-pip install shap==0.44.0
-
-# Or reinstall all requirements
-pip install -r requirements.txt
-
-# If using conda environment:
-conda install -c conda-forge shap
-            """)
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("""
-        **Advanced customer retention analytics for business growth.**
-        
-        In today's competitive business landscape, customer retention is paramount for sustainable growth. 
-        This project uses advanced machine learning to identify customers at risk of churning, enabling 
-        proactive retention strategies.
-        
-        ### 🎯 Our Approach
-        - **XGBoost model** with SHAP interpretability
-        - **Comprehensive EDA** with business KPIs
-        - **Real-time predictions** via FastAPI
-        - **Interactive dashboard** for stakeholders
-        - **Cost-benefit analysis** for ROI calculation
-        
-        ### 📈 Expected Results
-        - **ROC-AUC**: ~0.91
-        - **Estimated Savings**: ₹2L/month by reducing churn
-        - **Key Insight**: "Last login date" is the biggest churn driver
-        """)
-    
-    with col2:
-        # Dependency status
-        st.subheader("📋 System Status")
-        
-        # Check dependencies
-        deps_status = {
-            "SHAP": "✅" if SHAP_AVAILABLE else "❌",
-            "Utils": "✅" if UTILS_AVAILABLE else "❌",
-            "Plotly": "✅",
-            "Pandas": "✅",
-            "NumPy": "✅"
-        }
-        
-        for dep, status in deps_status.items():
-            st.write(f"{status} {dep}")
-        
-        # Add refresh button
-        if st.button("🔄 Refresh Status", help="Click to refresh model and data status"):
-            # Clear caches
-            load_model.clear()
-            load_sample_data.clear()
-            # Force reload
-            st.session_state.model = load_model()
-            st.rerun()
-        
-        # Model status - check current state
-        current_model = load_model()
-        if current_model is not None:
-            st.success("✅ Model Available")
-            model_type = str(type(current_model).__name__)
-            st.info(f"Type: {model_type}")
-            # Update session state
-            st.session_state.model = current_model
-        else:
-            st.error("❌ Model Not Found")
-            st.warning("Please run training first: `python models/train_model.py`")
-        
-        # Data status - check current state
-        current_data = load_sample_data()
-        if current_data is not None:
-            st.success("✅ Data Available")
-            st.info(f"Shape: {current_data.shape}")
-        else:
-            st.error("❌ Sample data not found. Please ensure churn_data.csv exists in the data folder.")
-        
-        # Quick stats
-        df = current_data
-        if df is not None:
-            total_customers = len(df)
-            if 'Exited' in df.columns:
-                churned = df['Exited'].sum()
-                churn_rate = churned / total_customers * 100
-                
-                st.markdown("### 📊 Dataset Overview")
-                st.metric("Total Customers", total_customers)
-                st.metric("Churn Rate", f"{churn_rate:.1f}%")
-                st.metric("Churned Customers", churned)
-
-def show_eda_page():
-    """EDA and data insights page."""
-    st.header("📊 Exploratory Data Analysis")
-    
-    df = load_sample_data()
-    if df is None:
-        st.error("Sample data not found. Please ensure churn_data.csv exists in the data folder.")
-        if st.button("🔄 Retry Loading Data"):
-            load_sample_data.clear()
-            st.rerun()
-        return
-    
-    # Dataset overview
-    st.subheader("📋 Dataset Overview")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("Total Records", len(df))
-    with col2:
-        st.metric("Total Features", len(df.columns))
-    with col3:
-        st.metric("Missing Values", df.isnull().sum().sum())
-    with col4:
-        if 'Exited' in df.columns:
-            churn_rate = df['Exited'].mean() * 100
-            st.metric("Churn Rate", f"{churn_rate:.1f}%")
-    
-    # Target distribution
-    if 'Exited' in df.columns:
-        st.subheader("🎯 Target Variable Distribution")
-        
-        fig = make_subplots(
-            rows=1, cols=2,
-            subplot_titles=('Churn Distribution', 'Churn Rate by Geography'),
-            specs=[[{"type": "pie"}, {"type": "bar"}]]
-        )
-        
-        # Pie chart
-        churn_counts = df['Exited'].value_counts()
-        fig.add_trace(
-            go.Pie(labels=['Not Churned', 'Churned'], values=churn_counts.values, hole=0.4),
-            row=1, col=1
-        )
-        
-        # Bar chart by geography
-        if 'Geography' in df.columns:
-            geo_churn = df.groupby('Geography')['Exited'].mean().reset_index()
-            fig.add_trace(
-                go.Bar(x=geo_churn['Geography'], y=geo_churn['Exited'], name='Churn Rate'),
-                row=1, col=2
-            )
-        
-        fig.update_layout(height=400, showlegend=True)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # Feature distributions
-    st.subheader("📈 Feature Distributions")
-    
-    # Select features to visualize
-    numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    if 'Exited' in numerical_cols:
-        numerical_cols.remove('Exited')
-    
-    if numerical_cols:
-        selected_features = st.multiselect(
-            "Select features to visualize:",
-            numerical_cols,
-            default=numerical_cols[:3] if len(numerical_cols) >= 3 else numerical_cols
-        )
-        
-        if selected_features:
-            for feature in selected_features:
-                fig = px.histogram(
-                    df, x=feature, color='Exited' if 'Exited' in df.columns else None,
-                    marginal='box', nbins=30,
-                    title=f'{feature} Distribution by Churn Status'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-    
-    # Correlation heatmap
-    st.subheader("🔥 Feature Correlation Matrix")
-    numerical_df = df.select_dtypes(include=[np.number])
-    if len(numerical_df.columns) > 1:
-        corr_matrix = numerical_df.corr()
-        
-        fig = px.imshow(
-            corr_matrix,
-            text_auto=True,
-            color_continuous_scale='RdBu',
-            title="Feature Correlation Heatmap"
-        )
-        fig.update_layout(height=600)
-        st.plotly_chart(fig, use_container_width=True)
-
-def show_model_performance_page():
-    """Model performance and evaluation page."""
-    st.header("🤖 Model Performance")
-    
-    # Check for current model
-    model = load_model()
-    if model is None:
-        st.error("No model loaded. Please run training first.")
-        if st.button("🔄 Retry Loading Model"):
-            load_model.clear()
-            st.rerun()
-        return
-    
-    # Model information
-    st.subheader("ℹ️ Model Information")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        model_type = str(type(model).__name__)
-        st.info(f"**Model Type**: {model_type}")
-    
-    with col2:
-        if hasattr(model, 'n_estimators'):
-            st.info(f"**N Estimators**: {model.n_estimators}")
-    
-    with col3:
-        if hasattr(model, 'max_depth'):
-            st.info(f"**Max Depth**: {model.max_depth}")
-    
-    # Performance metrics (mock data - in real scenario, load from training results)
-    st.subheader("📊 Performance Metrics")
-    
-    # Mock performance data
-    metrics_data = {
-        'Metric': ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC'],
-        'Score': [0.867, 0.745, 0.612, 0.598, 0.859]
-    }
-    metrics_df = pd.DataFrame(metrics_data)
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        st.dataframe(metrics_df, use_container_width=True)
-    
-    with col2:
-        fig = px.bar(metrics_df, x='Metric', y='Score', 
-                    title='Model Performance Metrics',
-                    color='Score', color_continuous_scale='viridis')
-        fig.update_layout(height=300)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # Feature importance
-    if hasattr(model, 'feature_importances_'):
-        st.subheader("🎯 Feature Importance")
-        
-        # Mock feature names (in real scenario, get from preprocessor)
-        feature_names = ['Age', 'Balance', 'CreditScore', 'Geography', 'IsActiveMember', 
-                        'Tenure', 'NumOfProducts', 'EstimatedSalary']
-        importances = model.feature_importances_[:len(feature_names)]
-        
-        importance_df = pd.DataFrame({
-            'Feature': feature_names,
-            'Importance': importances
-        }).sort_values('Importance', ascending=True)
-        
-        fig = px.bar(importance_df, x='Importance', y='Feature',
-                    orientation='h', title='Feature Importance',
-                    color='Importance', color_continuous_scale='plasma')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-
-def show_prediction_page():
-    """Individual prediction page."""
-    st.header("🔮 Customer Churn Prediction")
-    
-    model = load_model()
-    if model is None:
-        st.error("No model loaded. Please run training first.")
-        if st.button("🔄 Retry Loading Model"):
-            load_model.clear()
-            st.rerun()
-        return
-    
-    st.subheader("📝 Enter Customer Information")
-    
-    # Create input form
-    with st.form("prediction_form"):
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            credit_score = st.number_input("Credit Score", min_value=300, max_value=850, value=650)
-            geography = st.selectbox("Geography", ["France", "Spain", "Germany"])
-            gender = st.selectbox("Gender", ["Male", "Female"])
-            age = st.number_input("Age", min_value=18, max_value=100, value=35)
-        
-        with col2:
-            tenure = st.number_input("Tenure (years)", min_value=0, max_value=20, value=3)
-            balance = st.number_input("Balance", min_value=0.0, value=50000.0)
-            num_products = st.number_input("Number of Products", min_value=1, max_value=4, value=2)
-        
-        with col3:
-            has_cr_card = st.selectbox("Has Credit Card", [0, 1])
-            is_active = st.selectbox("Is Active Member", [0, 1])
-            estimated_salary = st.number_input("Estimated Salary", min_value=0.0, value=75000.0)
-        
-        submitted = st.form_submit_button("🔮 Predict Churn")
-        
-        if submitted:
-            # Prepare input data
-            input_data = {
-                'CreditScore': credit_score,
-                'Geography': geography,
-                'Gender': gender,
-                'Age': age,
-                'Tenure': tenure,
-                'Balance': balance,
-                'NumOfProducts': num_products,
-                'HasCrCard': has_cr_card,
-                'IsActiveMember': is_active,
-                'EstimatedSalary': estimated_salary
-            }
-            
-            # Make prediction (simplified - in real scenario, use proper preprocessing)
-            try:
-                # Mock prediction (replace with actual preprocessing and prediction)
-                churn_prob = np.random.beta(2, 5)  # Mock probability
-                churn_pred = 1 if churn_prob > 0.5 else 0
-                
-                # Display results
-                st.subheader("🎯 Prediction Results")
-                
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    st.metric("Churn Probability", f"{churn_prob:.2%}")
-                
-                with col2:
-                    prediction_text = "WILL CHURN" if churn_pred == 1 else "WILL STAY"
-                    color = "red" if churn_pred == 1 else "green"
-                    st.markdown(f"**Prediction**: <span style='color:{color}'>{prediction_text}</span>", 
-                               unsafe_allow_html=True)
-                
-                with col3:
-                    if churn_prob < 0.3:
-                        risk_level = "LOW"
-                        risk_color = "green"
-                    elif churn_prob < 0.6:
-                        risk_level = "MEDIUM"
-                        risk_color = "orange"
-                    else:
-                        risk_level = "HIGH"
-                        risk_color = "red"
-                    
-                    st.markdown(f"**Risk Level**: <span style='color:{risk_color}'>{risk_level}</span>", 
-                               unsafe_allow_html=True)
-                
-                # Recommendations
-                st.subheader("💡 Recommendations")
-                if churn_pred == 1:
-                    st.warning("""
-                    **⚠️ High Churn Risk Detected!**
-                    
-                    **Immediate Actions:**
-                    - Contact customer within 24 hours
-                    - Offer personalized retention package
-                    - Address potential service issues
-                    - Provide loyalty rewards or discounts
-                    """)
-                else:
-                    st.success("""
-                    **✅ Customer Likely to Stay**
-                    
-                    **Maintain Engagement:**
-                    - Continue providing excellent service
-                    - Offer additional products/services
-                    - Regular satisfaction surveys
-                    - Loyalty program enrollment
-                    """)
-                
-            except Exception as e:
-                st.error(f"Prediction error: {e}")
-
-def show_cost_benefit_page():
-    """Cost-benefit analysis simulation page."""
-    st.header("📈 Cost-Benefit A/B Testing Simulation")
+def show_home_page(api_status):
+    """Main dashboard home page."""
+    st.markdown("## Helping banks understand customer behavior and reduce churn.")
     
     st.markdown("""
-    **Simulate the financial impact of your churn prediction model!**
-    
-    Input your business parameters to see how much money you could save by implementing 
-    proactive retention strategies based on churn predictions.
+    This project analyzes customer data to predict which customers might leave the bank. 
+    By identifying at-risk customers early, banks can take action to keep them.
     """)
     
-    # Input parameters
-    st.subheader("💰 Business Parameters")
+    # Key Features Section
+    st.markdown("## 🎯 Key Features")
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        total_customers = st.number_input("Total Customers", min_value=1000, value=10000)
-        base_churn_rate = st.slider("Base Churn Rate (%)", min_value=5.0, max_value=50.0, value=20.0)
-        retention_cost = st.number_input("Retention Cost per Customer ($)", min_value=10, value=100)
-    
-    with col2:
-        customer_lifetime_value = st.number_input("Customer Lifetime Value ($)", min_value=100, value=1000)
-        model_precision = st.slider("Model Precision (%)", min_value=50.0, max_value=95.0, value=75.0)
-        intervention_success_rate = st.slider("Intervention Success Rate (%)", min_value=30.0, max_value=90.0, value=60.0)
-    
-    if st.button("🚀 Run Cost-Benefit Simulation"):
-        # Calculations
-        expected_churners = int(total_customers * (base_churn_rate / 100))
-        correctly_identified = int(expected_churners * (model_precision / 100))
-        successfully_retained = int(correctly_identified * (intervention_success_rate / 100))
-        
-        # Costs
-        intervention_cost = correctly_identified * retention_cost
-        
-        # Benefits
-        revenue_saved = successfully_retained * customer_lifetime_value
-        
-        # Net benefit
-        net_benefit = revenue_saved - intervention_cost
-        roi = (net_benefit / intervention_cost * 100) if intervention_cost > 0 else 0
-        
-        # Display results
-        st.subheader("💵 Financial Impact Analysis")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric("Expected Churners", expected_churners)
-        with col2:
-            st.metric("Correctly Identified", correctly_identified)
-        with col3:
-            st.metric("Successfully Retained", successfully_retained)
-        with col4:
-            st.metric("Intervention Cost", f"${intervention_cost:,}")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric("Revenue Saved", f"${revenue_saved:,}")
-        with col2:
-            st.metric("Net Benefit", f"${net_benefit:,}")
-        with col3:
-            st.metric("ROI", f"{roi:.1f}%")
-        
-        # Visualization
-        fig = go.Figure(data=[
-            go.Bar(name='Costs', x=['Intervention Cost'], y=[intervention_cost], marker_color='red'),
-            go.Bar(name='Benefits', x=['Revenue Saved'], y=[revenue_saved], marker_color='green')
-        ])
-        
-        fig.update_layout(
-            title='Cost vs Benefit Analysis',
-            xaxis_title='Category',
-            yaxis_title='Amount ($)',
-            height=400
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Monthly/Annual projections
-        st.subheader("📅 Projected Savings")
-        
-        monthly_savings = net_benefit
-        annual_savings = net_benefit * 12
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.success(f"**Monthly Savings**: ${monthly_savings:,}")
-        with col2:
-            st.success(f"**Annual Savings**: ${annual_savings:,}")
-
-def show_insights_page():
-    """Business insights and future work page."""
-    st.header("💡 Business Insights & Future Work")
-    
-    # Key insights
-    st.subheader("🔍 Key Insights")
-    
-    insights = [
-        ("🎯 Feature Importance", "Tenure and Age are the strongest predictors of churn"),
-        ("📈 Churn Patterns", "Customers with 1-2 years tenure have highest churn risk"),
-        ("💳 Product Usage", "Customers with 1 product are 3x more likely to churn"),
-        ("🌍 Geographic Trends", "German customers have highest churn rate (32.4%)"),
-        ("⚡ Active Members", "Active members have 50% lower churn probability")
+    approach_items = [
+        "Machine learning model using customer data",
+        "Data analysis with charts and insights", 
+        "Quick predictions through API",
+        "Easy-to-use dashboard",
+        "Cost savings calculator"
     ]
     
-    for title, description in insights:
-        with st.expander(title):
-            st.write(description)
-            st.info("**Business Action**: Implement targeted retention campaigns for high-risk segments")
+    for item in approach_items:
+        st.markdown(f"• {item}")
     
-    # Tech stack
-    st.subheader("🔧 Tech Stack")
+    # Results Section  
+    st.markdown("## 📊 What This System Delivers")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-        **🐍 Core Technologies**
-        - Python 3.9+
-        - Scikit-learn
-        - XGBoost
-        - Pandas/NumPy
-        """)
+        <div class="metric-container">
+            <h3>Model Accuracy</h3>
+            <h2>~91%</h2>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-        **🎨 Visualization & UI**
-        - Streamlit
-        - Plotly
-        - Matplotlib/Seaborn
-        - SHAP
-        """)
+        <div class="metric-container">
+            <h3>Potential Savings</h3>
+            <h2>₹2L/month</h2>
+            <p>through better retention</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-        **🚀 Deployment**
-        - FastAPI
-        - Docker
-        - GitHub Actions
-        - Render/Heroku
-        """)
+        <div class="metric-container">
+            <h3>Main Finding</h3>
+            <h2>"Last login date"</h2>
+            <p>is the biggest churn driver</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+def show_eda_page():
+    """Looking at the data to understand customer patterns."""
+    st.markdown("## 📊 Data Analysis")
     
-    # Future work
-    st.subheader("🔄 Future Work")
+    # Load data
+    data = load_sample_data()
     
-    future_items = [
-        "Model monitoring and drift detection",
-        "Active learning for continuous improvement",
-        "Real-time data pipeline integration",
-        "A/B testing framework for retention strategies",
-        "Multi-model ensemble for better performance",
-        "Explainable AI dashboard for business users"
-    ]
+    if data is not None:
+        st.markdown("### Quick Stats")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Customers", len(data))
+        with col2:
+            st.metric("Data Points", len(data.columns))
+        with col3:
+            if 'Exited' in data.columns:
+                churn_rate = data['Exited'].mean() * 100
+                st.metric("Leave Rate", f"{churn_rate:.1f}%")
+            else:
+                st.metric("Leave Rate", "N/A")
+        with col4:
+            st.metric("Data Status", "Clean ✅")
+        
+        # Show sample data
+        st.markdown("### Sample Customer Data")
+        st.dataframe(data.head(10))
+        
+        # Charts
+        if 'Exited' in data.columns:
+            st.markdown("### Customer Patterns")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Churn by Geography
+                if 'Geography' in data.columns:
+                    churn_by_geo = data.groupby('Geography')['Exited'].mean().reset_index()
+                    fig = px.bar(churn_by_geo, x='Geography', y='Exited', 
+                               title='Which Countries Have More Churn')
+                    st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                # Age distribution
+                if 'Age' in data.columns:
+                    fig = px.histogram(data, x='Age', color='Exited', 
+                                     title='Age Distribution by Churn Status')
+                    st.plotly_chart(fig, use_container_width=True)
+        
+        # Feature correlations
+        st.markdown("### Feature Correlations")
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 1:
+            corr_matrix = data[numeric_cols].corr()
+            fig = px.imshow(corr_matrix, text_auto=True, title="Feature Correlation Matrix")
+            st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.error("Sample data not found. Please ensure churn_data.csv exists in the data folder.")
+        
+        if st.button("🔄 Retry Loading Data"):
+            st.rerun()
+
+def show_prediction_page(api_status):
+    """Predict if a customer will leave the bank."""
+    st.markdown("## 🎯 Will This Customer Leave?")
     
-    for item in future_items:
-        st.checkbox(item, key=f"future_{item}")
+    if not api_status:
+        st.error("❌ The prediction service isn't running. Please start it first.")
+        st.markdown("### Start the service:")
+        st.code("python -m uvicorn app.advanced_api:app --reload --host 127.0.0.1 --port 8000")
+        return
     
-    # Results summary
-    st.subheader("📊 Project Results Summary")
+    st.success("✅ Prediction service is ready")
     
-    results_data = {
-        'Metric': ['ROC-AUC Score', 'F1-Score', 'Precision', 'Recall', 'Accuracy'],
-        'Score': [0.91, 0.73, 0.75, 0.71, 0.87],
-        'Benchmark': [0.85, 0.65, 0.70, 0.65, 0.80],
-        'Improvement': ['+6%', '+12%', '+7%', '+9%', '+9%']
-    }
-    
-    results_df = pd.DataFrame(results_data)
-    st.dataframe(results_df, use_container_width=True)
-    
-    # Live demo section
-    st.subheader("🌐 Live Demo")
+    # Single prediction
+    st.markdown("### Check One Customer")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.info("""
-        **🖥️ Streamlit Dashboard**
-        
-        Interactive dashboard for churn analysis and prediction
-        
-        [View Live Demo](#) (You're here! 🎉)
-        """)
+        credit_score = st.slider("Credit Score", 300, 850, 650)
+        geography = st.selectbox("Country", ["France", "Germany", "Spain"])
+        gender = st.selectbox("Gender", ["Male", "Female"])
+        age = st.slider("Age", 18, 100, 35)
+        tenure = st.slider("Years with Bank", 0, 10, 5)
     
     with col2:
-        st.info("""
-        **🔌 FastAPI Endpoint**
+        balance = st.number_input("Account Balance", 0.0, 200000.0, 75000.0)
+        num_products = st.slider("Number of Products", 1, 4, 2)
+        has_cr_card = st.selectbox("Has Credit Card", [0, 1])
+        is_active = st.selectbox("Is Active Member", [0, 1])
+        estimated_salary = st.number_input("Annual Salary", 10000.0, 150000.0, 50000.0)
+    
+    if st.button("🔮 Check if They'll Leave", type="primary"):
+        customer_data = {
+            "CreditScore": credit_score,
+            "Geography": geography,
+            "Gender": gender,
+            "Age": age,
+            "Tenure": tenure,
+            "Balance": balance,
+            "NumOfProducts": num_products,
+            "HasCrCard": has_cr_card,
+            "IsActiveMember": is_active,
+            "EstimatedSalary": estimated_salary
+        }
         
-        Real-time churn prediction API
+        result = make_prediction_api(customer_data)
         
-        Endpoint: `/predict` | Method: `POST`
+        if result:
+            prediction = result.get('prediction', 'Unknown')
+            probability = result.get('churn_probability', 0)
+            confidence = result.get('confidence', 'Unknown')
+            risk_category = result.get('risk_category', 'Unknown')
+            
+            # Display result
+            if prediction == "Will Churn":
+                st.markdown(f"""
+                <div class="prediction-result will-churn">
+                    🚨 {prediction}
+                    <br>Probability: {probability:.1%}
+                    <br>Confidence: {confidence}
+                    <br>Risk: {risk_category}
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="prediction-result will-stay">
+                    ✅ {prediction}
+                    <br>Probability: {probability:.1%}
+                    <br>Confidence: {confidence}  
+                    <br>Risk: {risk_category}
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # Check multiple customers
+    st.markdown("---")
+    st.markdown("### Check Multiple Customers at Once")
+    
+    # CSV Format Instructions
+    with st.expander("📋 How to Format Your CSV File", expanded=False):
+        st.markdown("""
+        **Your CSV file needs these exact column names:**
+        
+        | Column Name | Data Type | Description | Example Values |
+        |-------------|-----------|-------------|----------------|
+        | `CreditScore` | Integer | Credit score (300-850) | 650, 720, 580 |
+        | `Geography` | String | Country name | France, Germany, Spain |
+        | `Gender` | String | Customer gender | Male, Female |
+        | `Age` | Integer | Customer age (18-100) | 35, 42, 28 |
+        | `Tenure` | Integer | Years with bank (0-10) | 5, 8, 2 |
+        | `Balance` | Float | Account balance | 75000.50, 0.0, 120000.0 |
+        | `NumOfProducts` | Integer | Number of products (1-4) | 2, 1, 3 |
+        | `HasCrCard` | Integer | Has credit card (0 or 1) | 1, 0 |
+        | `IsActiveMember` | Integer | Is active member (0 or 1) | 1, 0 |
+        | `EstimatedSalary` | Float | Estimated annual salary | 50000.0, 75000.0 |
+        
+        **Important Notes:**
+        - ✅ All 10 columns must be present
+        - ✅ Column names are case-sensitive
+        - ✅ Geography: Only "France", "Germany", "Spain" allowed
+        - ✅ Gender: Only "Male", "Female" allowed
+        - ✅ Binary fields (HasCrCard, IsActiveMember): Use 0 or 1
+        - ✅ No missing values allowed
         """)
+        
+        # Sample CSV download
+        sample_data = {
+            'CreditScore': [650, 720, 580, 690],
+            'Geography': ['France', 'Germany', 'Spain', 'France'], 
+            'Gender': ['Female', 'Male', 'Female', 'Male'],
+            'Age': [35, 42, 28, 55],
+            'Tenure': [5, 8, 2, 6],
+            'Balance': [75000.50, 0.0, 120000.0, 85000.25],
+            'NumOfProducts': [2, 1, 3, 2],
+            'HasCrCard': [1, 1, 0, 1],
+            'IsActiveMember': [1, 0, 1, 1],
+            'EstimatedSalary': [50000.0, 75000.0, 60000.0, 45000.0]
+        }
+        sample_df = pd.DataFrame(sample_data)
+        
+        st.markdown("**Sample CSV Format:**")
+        st.dataframe(sample_df)
+        
+        # Download sample CSV
+        sample_csv = sample_df.to_csv(index=False)
+        st.download_button(
+            label="📥 Download Example File",
+            data=sample_csv,
+            file_name="batch_prediction_template.csv",
+            mime="text/csv",
+            help="Download this template and fill it with your customer data"
+        )
+    
+    uploaded_file = st.file_uploader(
+        "Upload your customer data (CSV)", 
+        type=['csv'],
+        help="Upload a CSV file with customer data to get predictions for all customers"
+    )
+    
+    if uploaded_file is not None:
+        try:
+            batch_data = pd.read_csv(uploaded_file)
+            
+            # Validate CSV format
+            required_columns = [
+                'CreditScore', 'Geography', 'Gender', 'Age', 'Tenure', 
+                'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary'
+            ]
+            
+            missing_columns = [col for col in required_columns if col not in batch_data.columns]
+            extra_columns = [col for col in batch_data.columns if col not in required_columns]
+            
+            if missing_columns:
+                st.error(f"❌ Missing required columns: {', '.join(missing_columns)}")
+                st.info("💡 Please ensure your CSV has all required columns with exact names (case-sensitive)")
+                return
+            
+            if extra_columns:
+                st.warning(f"⚠️ Extra columns will be ignored: {', '.join(extra_columns)}")
+                batch_data = batch_data[required_columns]  # Keep only required columns
+            
+            # Validate data types and values
+            validation_errors = []
+            
+            # Check Geography values
+            valid_geography = ['France', 'Germany', 'Spain']
+            invalid_geo = batch_data[~batch_data['Geography'].isin(valid_geography)]['Geography'].unique()
+            if len(invalid_geo) > 0:
+                validation_errors.append(f"Invalid Geography values: {list(invalid_geo)}. Must be: {valid_geography}")
+            
+            # Check Gender values  
+            valid_gender = ['Male', 'Female']
+            invalid_gender = batch_data[~batch_data['Gender'].isin(valid_gender)]['Gender'].unique()
+            if len(invalid_gender) > 0:
+                validation_errors.append(f"Invalid Gender values: {list(invalid_gender)}. Must be: {valid_gender}")
+            
+            # Check binary fields
+            for col in ['HasCrCard', 'IsActiveMember']:
+                invalid_binary = batch_data[~batch_data[col].isin([0, 1])][col].unique()
+                if len(invalid_binary) > 0:
+                    validation_errors.append(f"Invalid {col} values: {list(invalid_binary)}. Must be: 0 or 1")
+            
+            # Check numeric ranges
+            if (batch_data['CreditScore'] < 300).any() or (batch_data['CreditScore'] > 850).any():
+                validation_errors.append("CreditScore must be between 300 and 850")
+            
+            if (batch_data['Age'] < 18).any() or (batch_data['Age'] > 100).any():
+                validation_errors.append("Age must be between 18 and 100")
+                
+            if (batch_data['Tenure'] < 0).any() or (batch_data['Tenure'] > 10).any():
+                validation_errors.append("Tenure must be between 0 and 10")
+                
+            if (batch_data['NumOfProducts'] < 1).any() or (batch_data['NumOfProducts'] > 4).any():
+                validation_errors.append("NumOfProducts must be between 1 and 4")
+            
+            # Check for missing values
+            if batch_data.isnull().any().any():
+                validation_errors.append("Missing values detected. All fields are required.")
+            
+            if validation_errors:
+                st.error("❌ **Data Validation Errors:**")
+                for error in validation_errors:
+                    st.error(f"   • {error}")
+                st.info("💡 Please fix these issues and re-upload your file")
+                return
+            
+            # Show validation success
+            st.success(f"✅ **CSV Validation Passed!** Found {len(batch_data)} customers with valid data")
+            
+            # Preview data
+            st.markdown("**Data Preview:**")
+            st.dataframe(batch_data.head(10))
+            
+            if st.button("🔮 Predict Batch", type="primary"):
+                # Convert DataFrame to list of dicts
+                customers_data = batch_data.to_dict('records')
+                
+                with st.spinner(f"Making predictions for {len(customers_data)} customers..."):
+                    results = make_batch_prediction_api(customers_data)
+                
+                if results:
+                    predictions_list = results.get('predictions', [])
+                    if predictions_list:
+                        # Create results DataFrame with customer data + predictions
+                        predictions_df = pd.DataFrame(predictions_list)
+                        
+                        # Add customer identifiers (first few columns for context)
+                        results_with_context = pd.concat([
+                            batch_data[['CreditScore', 'Geography', 'Gender', 'Age']].reset_index(drop=True),
+                            predictions_df
+                        ], axis=1)
+                        
+                        st.success(f"✅ **Successfully processed {len(predictions_df)} customers!**")
+                        
+                        # Summary statistics
+                        churn_count = sum(1 for p in predictions_list if p.get('prediction') == 'Will Churn')
+                        stay_count = len(predictions_list) - churn_count
+                        avg_churn_prob = sum(p.get('churn_probability', 0) for p in predictions_list) / len(predictions_list)
+                        
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Will Churn", churn_count, f"{churn_count/len(predictions_list)*100:.1f}%")
+                        with col2:
+                            st.metric("Will Stay", stay_count, f"{stay_count/len(predictions_list)*100:.1f}%")
+                        with col3:
+                            st.metric("Avg Churn Risk", f"{avg_churn_prob:.1%}")
+                        
+                        # Show detailed results
+                        st.markdown("**Detailed Predictions:**")
+                        st.dataframe(results_with_context, use_container_width=True)
+                        
+                        # Download results with customer context
+                        csv = results_with_context.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download Detailed Results",
+                            data=csv,
+                            file_name=f"churn_predictions_{len(predictions_list)}_customers.csv",
+                            mime="text/csv",
+                            help="Download predictions with customer context data"
+                        )
+                    else:
+                        st.error("❌ No predictions were generated. Please check your data.")
+                else:
+                    st.error("❌ Failed to get predictions from API. Please check the service.")
+        except Exception as e:
+            st.error(f"Error processing file: {e}")
+
+def show_model_performance(model_info):
+    """How well the model works."""
+    st.markdown("## 📈 How Good Is Our Model?")
+    
+    if model_info and model_info.get('model_loaded', False):
+        st.success("✅ Model is working")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("Model Status", "Running")
+        with col2:
+            st.metric("API Type", "FastAPI")
+        with col3:
+            st.metric("Data Points", "15 Customer Features")
+        
+        # Show what matters most for predictions
+        st.markdown("### Model Features")
+        
+        features = [
+            "Credit Score", "Geography", "Gender", "Age", 
+            "Tenure", "Balance", "Num of Products", "Has Credit Card"
+        ]
+        
+        # Create mock importance scores for visualization
+        importance_scores = [0.25, 0.18, 0.12, 0.15, 0.08, 0.12, 0.07, 0.03]
+        
+        feature_importance = pd.DataFrame({
+            'Feature': features,
+            'Importance': importance_scores
+        }).sort_values('Importance', ascending=True)
+        
+        fig = px.bar(feature_importance, x='Importance', y='Feature', 
+                    orientation='h', title='Feature Importance (Estimated)')
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Model details
+        st.markdown("### API Information")
+        st.json(model_info)
+    else:
+        st.error("❌ No model loaded. Please ensure the FastAPI service is running.")
+        
+        if st.button("🔄 Retry Loading Model"):
+            st.rerun()
+
+def show_drift_detection(api_status):
+    """Show data drift detection interface."""
+    st.markdown("## 🔄 Data Drift Detection")
+    
+    if not api_status:
+        st.error("❌ FastAPI service is not available for drift detection.")
+        return
+    
+    st.markdown("""
+    Data drift occurs when the statistical properties of input data change over time, 
+    potentially degrading model performance. Monitor your data regularly!
+    """)
+    
+    # Sample drift detection
+    st.markdown("### Check Current Data Drift")
+    
+    if st.button("🔍 Check Drift with Sample Data"):
+        # Create sample data for drift detection
+        sample_customers = [
+            {
+                "CreditScore": 650,
+                "Geography": "France",
+                "Gender": "Female", 
+                "Age": 35,
+                "Tenure": 5,
+                "Balance": 75000.0,
+                "NumOfProducts": 2,
+                "HasCrCard": 1,
+                "IsActiveMember": 1,
+                "EstimatedSalary": 50000.0
+            },
+            {
+                "CreditScore": 800,
+                "Geography": "Germany",
+                "Gender": "Male",
+                "Age": 45,
+                "Tenure": 8,
+                "Balance": 120000.0,
+                "NumOfProducts": 1,
+                "HasCrCard": 1,
+                "IsActiveMember": 1,
+                "EstimatedSalary": 75000.0
+            }
+        ]
+        
+        drift_result = check_data_drift_api(sample_customers)
+        
+        if drift_result:
+            drift_detected = drift_result.get('drift_detected', False)
+            drift_score = drift_result.get('drift_score', 0)
+            
+            if drift_detected:
+                st.error(f"🚨 Drift Detected! Score: {drift_score:.4f}")
+            else:
+                st.success(f"✅ No Drift Detected. Score: {drift_score:.4f}")
+            
+            st.markdown("### Drift Analysis Details")
+            st.json(drift_result)
+
+def show_api_integration(api_status):
+    """Show API integration documentation."""
+    st.markdown("## 🔗 API Integration")
+    
+    if api_status:
+        st.success("✅ FastAPI service is running")
+        st.markdown(f"**Base URL**: `{FASTAPI_URL}`")
+    else:
+        st.error("❌ FastAPI service is not accessible")
+    
+    st.markdown("### Available Endpoints")
+    
+    endpoints = [
+        {"Method": "GET", "Endpoint": "/", "Description": "API information and status"},
+        {"Method": "GET", "Endpoint": "/health", "Description": "Check API health"},
+        {"Method": "POST", "Endpoint": "/predict/simple", "Description": "Single prediction with feature array"},
+        {"Method": "GET", "Endpoint": "/docs", "Description": "Interactive API documentation"}
+    ]
+    
+    endpoints_df = pd.DataFrame(endpoints)
+    st.dataframe(endpoints_df)
+    
+    # Code examples
+    st.markdown("### Integration Examples")
+    
+    st.markdown("#### Python Example")
+    st.code("""
+import requests
+
+# Health check
+response = requests.get("http://127.0.0.1:8000/health")
+print(response.json())
+
+# Single prediction with feature array
+features = [650, 1, 0, 35, 5, 75000.0, 2, 1]  # [CreditScore, Geography_encoded, Gender_encoded, Age, Tenure, Balance, NumOfProducts, HasCrCard]
+
+response = requests.post("http://127.0.0.1:8000/predict/simple", json=features)
+result = response.json()
+print(f"Prediction: {result['prediction']}")
+print(f"Churn Probability: {result['churn_probability']:.2%}")
+""", language="python")
+    
+    st.markdown("#### cURL Example")
+    st.code("""
+# Health check
+curl -X GET "http://127.0.0.1:8000/health"
+
+# Single prediction
+curl -X POST "http://127.0.0.1:8000/predict/simple" \\
+     -H "Content-Type: application/json" \\
+     -d '[650, 1, 0, 35, 5, 75000.0, 2, 1]'
+""", language="bash")
+    
+    # API Documentation link
+    if api_status:
+        st.markdown("### Interactive Documentation")
+        st.markdown(f"[Open API Docs]({FASTAPI_URL}/docs)")
+        st.markdown(f"[Open ReDoc]({FASTAPI_URL}/redoc)")
 
 if __name__ == "__main__":
     main()

@@ -1,22 +1,26 @@
 """
-Simple FastAPI test without complex dependencies
+Simple FastAPI test without complex dependencies - Clean version
 """
 from fastapi import FastAPI
 import joblib
 import pandas as pd
 import numpy as np
 import os
+import uvicorn
 
 app = FastAPI(title="Customer Churn Prediction API - Simple", version="1.0.0")
 
 # Load model once at startup
 MODEL = None
-if os.path.exists("models/best_churn_model.joblib"):
+model_path = r"C:\Users\ommou\OneDrive\Desktop\Custommer_churn_analysis\CustomerChurnFireProject\models\best_churn_model.joblib"
+if os.path.exists(model_path):
     try:
-        MODEL = joblib.load("models/best_churn_model.joblib")
-        print("✅ Model loaded successfully")
+        MODEL = joblib.load(model_path)
+        print("Model loaded successfully")
     except Exception as e:
-        print(f"❌ Model loading error: {e}")
+        print(f"Model loading error: {e}")
+else:
+    print(f"Model file not found at: {model_path}")
 
 @app.get("/")
 def root():
@@ -67,5 +71,4 @@ def predict_simple(features: list):
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8001)

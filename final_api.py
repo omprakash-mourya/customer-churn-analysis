@@ -1,29 +1,41 @@
 """
-Simple FastAPI test without complex dependencies
+Simple FastAPI for Customer Churn Prediction - Final Version
 """
 from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List
 import joblib
 import pandas as pd
 import numpy as np
 import os
+import uvicorn
 
-app = FastAPI(title="Customer Churn Prediction API - Simple", version="1.0.0")
+app = FastAPI(title="Customer Churn Prediction API", version="1.0.0")
+
+# Request model
+class PredictionRequest(BaseModel):
+    features: List[float]
 
 # Load model once at startup
 MODEL = None
-if os.path.exists("models/best_churn_model.joblib"):
-    try:
-        MODEL = joblib.load("models/best_churn_model.joblib")
-        print("✅ Model loaded successfully")
-    except Exception as e:
-        print(f"❌ Model loading error: {e}")
+model_path = r"C:\Users\ommou\OneDrive\Desktop\Custommer_churn_analysis\CustomerChurnFireProject\models\best_churn_model.joblib"
+
+try:
+    if os.path.exists(model_path):
+        MODEL = joblib.load(model_path)
+        print(f"SUCCESS: Model loaded from {model_path}")
+    else:
+        print(f"ERROR: Model file not found at {model_path}")
+except Exception as e:
+    print(f"ERROR loading model: {e}")
 
 @app.get("/")
 def root():
     return {
         "message": "Customer Churn Prediction API",
         "status": "active",
-        "model_loaded": MODEL is not None
+        "model_loaded": MODEL is not None,
+        "model_path": model_path
     }
 
 @app.get("/health")
@@ -34,7 +46,7 @@ def health():
     }
 
 @app.post("/predict/simple")
-def predict_simple(features: list):
+def predict_simple(request: PredictionRequest):
     """
     Simple prediction with list of preprocessed features.
     Expects 15 features in this order:
@@ -43,8 +55,10 @@ def predict_simple(features: list):
     9: HasCrCard, 10: IsActiveMember, 11: EstimatedSalary, 12: CreditUtilization,
     13: InteractionScore, 14: BalanceToSalaryRatio
     """
+    features = request.features
+    
     if MODEL is None:
-        return {"error": "Model not loaded"}
+        return {"error": "Model not loaded", "model_path": model_path}
     
     try:
         # Check number of features - the model expects 15 features
@@ -67,5 +81,4 @@ def predict_simple(features: list):
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8002)

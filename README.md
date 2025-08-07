@@ -1,66 +1,73 @@
-# Customer Churn Analysis
+# Customer Churn Prediction System
 
-A comprehensive machine learning solution for predicting customer churn using advanced analytics and real-time prediction capabilities.
+Banking customer retention analysis and churn prediction using machine learning techniques.
 
 ## Live Demo
-🌐 **Access the live application**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
+🚀 **Try it here**: [https://customerchurnpredictionanalysis.streamlit.app/](https://customerchurnpredictionanalysis.streamlit.app/)
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red.svg)](https://streamlit.io)
 [![FastAPI](https://img.shields.io/badge/FastAPI-API-green.svg)](https://fastapi.tiangolo.com)
-[![XGBoost](https://img.shields.io/badge/XGBoost-ML-orange.svg)](https://xgboost.readthedocs.io)
-[![SHAP](https://img.shields.io/badge/SHAP-Explainable-purple.svg)](https://shap.readthedocs.io)
+[![Scikit-learn](https://img.shields.io/badge/ScikitLearn-ML-orange.svg)](https://scikit-learn.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Project Overview
+## About This Project
 
-This project implements a machine learning solution for customer churn prediction using bank customer data. The system provides:
+Built as part of my data science portfolio, this project tackles the critical business problem of customer churn in banking. After analyzing various ML approaches, I developed a solution that helps banks identify at-risk customers before they leave.
 
-- **Machine Learning Model** with 91% ROC-AUC score using Random Forest
-- **Interactive Web Interface** for real-time predictions and analysis
-- **API Endpoints** for integration with business systems
-- **Model Explainability** using SHAP values for transparent decision making
+**What it does:**
+- Predicts which customers are likely to churn (leave the bank)
+- Provides probability scores and risk categorization
+- Offers both single-customer and batch processing capabilities
+- Includes a user-friendly web interface for business users
 
-### Key Features
-- **High Accuracy**: 87% prediction accuracy with comprehensive evaluation metrics
-- **Real-time Predictions**: Single customer and batch prediction capabilities
-- **Business Integration**: REST API with detailed documentation
-- **Data Insights**: Feature importance analysis and customer segmentation
+**Technical highlights:**
+- Random Forest classifier achieving 87% accuracy
+- Feature engineering for improved model performance
+- REST API for easy integration
+- Interactive dashboard with data visualizations
+
+## Features
+- **Predictive Analytics**: Customer churn probability with confidence scores
+- **Batch Processing**: Upload CSV files for multiple customer analysis
+- **Visual Dashboard**: Charts and insights for data exploration
+- **API Integration**: RESTful endpoints for business system integration
 
 ## Getting Started
 
 ### Prerequisites
 - Python 3.9+
-- Git
-- Virtual environment (recommended)
+- Git (for version control)
+
+## Quick Start
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone this repository**
 ```bash
 git clone https://github.com/omprakash-mourya/customer-churn-analysis.git
 cd customer-churn-analysis
 ```
 
-2. **Set up environment**
+2. **Create virtual environment** (recommended)
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv churn_env
+source churn_env/bin/activate  # Windows: churn_env\Scripts\activate
 ```
 
-3. **Install dependencies**
+3. **Install required packages**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Run the dashboard**
+4. **Launch the dashboard**
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-5. **Access the application**
-   - Dashboard: http://localhost:8501
-   - API Documentation: http://localhost:8000/docs (when API is running)
+5. **Open in browser**
+   - Main Dashboard: http://localhost:8501
+   - API Documentation: http://localhost:8000/docs (when running API server)
 
 ## � Features
 
@@ -349,7 +356,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ### **Development Setup**
 ```bash
 # Fork and clone the repo
-git clone https://github.com/your-username/CustomerChurnFireProject.git
+git clone https://github.com/omprakash-mourya/customer-churn-analysis.git
 
 # Create feature branch
 git checkout -b feature/amazing-feature
@@ -377,10 +384,10 @@ Special thanks to the open-source community for the incredible tools that made t
 
 ## 📞 Contact & Support
 
-- **Author**: Customer Churn Fire Team
-- **Email**: support@churnfire.com
-- **Issues**: [GitHub Issues](https://github.com/your-username/CustomerChurnFireProject/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/CustomerChurnFireProject/discussions)
+- **Author**: Omprakash Mourya
+- **Email**: ommourya2006@gmail.com
+- **GitHub**: [https://github.com/omprakash-mourya/customer-churn-analysis](https://github.com/omprakash-mourya/customer-churn-analysis)
+- **Issues**: [GitHub Issues](https://github.com/omprakash-mourya/customer-churn-analysis/issues)
 
 ---
 
@@ -388,6 +395,6 @@ Special thanks to the open-source community for the incredible tools that made t
 
 **🔥 Built with ❤️ for better customer retention 🔥**
 
-[⬆ Back to Top](#-customer-churn-fire-project)
+[⬆ Back to Top](#customer-churn-prediction-system)
 
 </div>
