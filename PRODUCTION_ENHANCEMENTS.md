@@ -298,7 +298,7 @@ CMD ["uvicorn", "app.advanced_api:app", "--host", "0.0.0.0", "--port", "8000"]
 ### Getting Help
 - **Issues**: [GitHub Issues](https://github.com/omprakash-mourya/customer-churn-analysis/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/omprakash-mourya/customer-churn-analysis/discussions)
-- **Email**: omprakashmourya788@gmail.com
+- **Email**: ommourya2006@gmail.com
 
 ### Troubleshooting
 
