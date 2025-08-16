@@ -1,261 +1,180 @@
-# 💳 Credit Card Fraud Detection
+# 🏦 Customer Churn Prediction System
 
-A comprehensive machine learning project for detecting fraudulent credit card transactions. This project demonstrates end-to-end ML engineering skills including handling severely imbalanced datasets, advanced sampling techniques, model interpretability, and production deployment with interactive web applications.
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://customerchurnpredictionanalysis.streamlit.app/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 👨‍💻 About the Author
+> **Banking Churn Prediction Tool** - Helping banks identify at-risk customers before they leave
 
-**Omprakash Mourya**  
-📧 ommourya2006@gmail.com  
-📅 Last Updated: August 11, 2025
+## 🎯 Project Overview
 
-## 🎯 Project Motivation
+This project analyzes customer data to predict which customers might leave the bank. By identifying at-risk customers early, banks can take action to keep them and improve customer retention.
 
-Credit card fraud detection is a critical challenge in the financial industry, with losses exceeding $28 billion globally in 2023. This project tackles the complex problem of identifying fraudulent transactions in highly imbalanced datasets (only 0.17% fraud rate) while maintaining excellent customer experience through minimal false positives.
+## 🏆 Key Achievements
 
-## 📊 Dataset
+• **Modelled churn risk for 10K customers**, tuning Random Forest to **86% accuracy & 0.85 ROC-AUC score**
 
-This project uses the **Credit Card Fraud Detection** dataset from Kaggle, which contains transactions made by European cardholders in September 2013.
+• **Increased accuracy by 15% & ROC-AUC by 8.8%** over the baseline logistic regression model used initially
 
-**Dataset Characteristics:**
-- 284,807 transactions over 2 days
-- 492 fraudulent transactions (0.17% of all transactions)
-- PCA-transformed features (V1-V28) to protect customer privacy
-- Highly imbalanced: ~577 normal transactions for every fraud case
+• **Found customers aged 51-60 have 2.8x higher churn risk**; targeting pre-retirement financial planning can lower attrition and boost retention revenue
 
-**Why This Dataset?**
-I chose this dataset because it represents real-world challenges in fraud detection:
-- Extreme class imbalance mimics actual fraud rates
-- Privacy-protected features simulate production environments
-- Temporal aspects require careful train/test splitting
-- 30 features: Time, Amount, and V1-V28 (PCA-transformed features)
-- Highly imbalanced: ~577:1 ratio of normal to fraud transactions
+• **Deployed Streamlit app** with batch uploads, **interactive churn probability gauges** and exportable reports for analysis
 
-## 🏗️ Project Structure
+## ✨ Key Features
+
+- **Machine learning model** using customer data
+- **Data analysis** with charts and insights  
+- **Interactive prediction interface** with visual probability gauges
+- **Batch processing** for multiple customers at once
+- **Easy-to-use dashboard** with professional visualizations
+- **Export capabilities** for business reporting
+
+## 🚀 Live Demo
+
+**Try it here:** [Customer Churn Prediction Tool](https://customerchurnpredictionanalysis.streamlit.app/)
+
+## 📊 Model Performance
+
+| Metric | Baseline (Logistic Regression) | Final Model (Random Forest) | Improvement |
+|--------|--------------------------------|------------------------------|-------------|
+| **Accuracy** | 70.4% | 86.2% | +15.8% |
+| **ROC-AUC** | 0.764 | 0.852 | +8.8% |
+| **Precision** | 0.55 | 0.78 | +23% |
+| **Recall** | 0.47 | 0.72 | +25% |
+
+## 🎛️ Interactive Features
+
+### Visual Probability Gauges
+- **Real-time churn probability gauges** (0-100%)
+- **Color-coded risk zones**: Green (Low), Yellow (Medium), Red (High)
+- **Interactive dashboard** with multiple metrics
+
+### Batch Analysis Dashboard
+- **Churn Rate Gauge**: Overall percentage of at-risk customers
+- **Retention Rate Gauge**: Percentage likely to stay
+- **Average Risk Gauge**: Mean probability across all customers
+
+## 📈 Business Insights
+
+### 🎯 High-Risk Customer Segments
+- **Age 51-60**: 2.8x higher churn risk (56% churn rate)
+- **Single product customers**: 27% churn rate vs 8% for multi-product
+- **Inactive members**: 27% churn rate vs 14% for active members
+- **Germany customers**: 32% churn rate (highest by geography)
+
+### 💡 Retention Strategies
+1. **Pre-retirement planning services** for 51-60 age group
+2. **Product expansion** campaigns for single-product customers  
+3. **Engagement programs** for inactive members
+4. **Localized retention** strategies for German market
+
+## 🛠️ Technical Stack
+
+- **Python 3.8+**: Core programming language
+- **Scikit-learn**: Machine learning models
+- **Pandas & NumPy**: Data manipulation
+- **Plotly**: Interactive visualizations and gauges
+- **Streamlit**: Web application framework
+- **FastAPI**: RESTful API (optional)
+
+## 📁 Project Structure
 
 ```
-credit-card-fraud/
-├── data/                           # Dataset directory (not committed)
-│   └── creditcard.csv             # Place downloaded dataset here
-├── notebooks/                      # Jupyter notebooks for analysis
-│   ├── 01_EDA.ipynb               # Exploratory Data Analysis
-│   └── 02_modeling_experiments.ipynb  # Model development and tuning
-├── src/                           # Source code modules
-│   ├── __init__.py
-│   ├── config.py                  # Configuration settings
-│   ├── data_utils.py              # Data loading and EDA utilities
-│   ├── preprocess.py              # Preprocessing pipeline
-│   ├── train.py                   # Model training scripts
-│   ├── evaluate.py                # Model evaluation utilities
-│   ├── explain.py                 # Model explainability (SHAP, LIME)
-│   ├── inference.py               # Prediction utilities
-│   └── utils.py                   # General utilities
-├── app/                           # Streamlit demo application
-│   └── streamlit_app.py
-├── models/                        # Trained model artifacts
-│   ├── pipeline.joblib            # Preprocessing pipeline
-│   └── xgb_model.joblib          # Trained XGBoost model
-├── tests/                         # Unit tests
-│   ├── test_preprocess.py
-│   └── test_inference.py
-├── logs/                          # Log files
-├── .gitignore
-├── requirements.txt
-├── README.md
-└── run_local.sh                   # Setup and run script
+CustomerChurnFireProject/
+├── app/
+│   └── streamlit_app.py          # Main Streamlit application
+├── data/
+│   └── Churn_Modelling.csv       # Customer dataset (10K records)
+├── models/
+│   └── churn_model.pkl           # Trained Random Forest model
+├── notebooks/
+│   └── eda-and-modeling.ipynb    # Analysis and model development
+├── tests/
+│   └── test_api.py               # API endpoint tests
+└── requirements.txt              # Python dependencies
 ```
 
 ## 🚀 Quick Start
 
-### 1. Environment Setup
+### Option 1: Use the Live App
+Visit the deployed application: [Customer Churn Prediction Tool](https://customerchurnpredictionanalysis.streamlit.app/)
+
+### Option 2: Run Locally
 
 ```bash
-# Clone or download the project
-cd credit-card-fraud
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+# Clone the repository
+git clone https://github.com/omprakash-mourya/customer-churn-analysis.git
+cd customer-churn-analysis/CustomerChurnFireProject
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Data Preparation
-
-```bash
-# Create data directory
-mkdir data
-
-# Download creditcard.csv from Kaggle and place it in data/
-# The file should be located at: data/creditcard.csv
-```
-
-### 3. Model Training
-
-```bash
-# Train models (this will take several minutes)
-python -m src.train
-
-# This will create:
-# - models/pipeline.joblib (preprocessing pipeline)
-# - models/xgb_model.joblib (trained XGBoost model)
-```
-
-### 4. Launch Demo Application
-
-```bash
-# Run Streamlit app (make sure you're in the project root directory)
-python -m streamlit run app/streamlit_app.py
-
-# Alternative method:
+# Run the Streamlit app
 streamlit run app/streamlit_app.py
-
-# Open your browser to: http://localhost:8501
 ```
 
-## 🔧 Key Features
+The app will open in your browser at `http://localhost:8501`
 
-### 🤖 Machine Learning Pipeline
-- **Preprocessing**: StandardScaler for all numeric features
-- **Imbalance Handling**: SMOTE (Synthetic Minority Oversampling Technique)
-- **Models**: Logistic Regression (baseline) + XGBoost (main model)
-- **Hyperparameter Tuning**: RandomizedSearchCV with 3-fold cross-validation
-- **Threshold Optimization**: Cost-based optimization considering business impact
+## 📊 How to Use
 
-### 📈 Model Performance
-- **ROC-AUC**: >0.98 on test set
-- **Precision-Recall AUC**: >0.85 on test set
-- **Recall**: Optimized to catch maximum fraud cases
-- **Threshold Tuning**: Balances false positives vs. false negatives
+### Single Customer Prediction
+1. Navigate to "🎯 Make Predictions"
+2. Enter customer details in the form
+3. Click "🔮 Predict Churn"
+4. View the **interactive probability gauge** and risk assessment
 
-### 🧠 Model Explainability
-- **SHAP (SHapley Additive exPlanations)**: Global and local feature importance
-- **LIME (Local Interpretable Model-agnostic Explanations)**: Individual prediction explanations
-- **Feature Importance**: Built-in XGBoost feature ranking
+### Batch Predictions
+1. Go to "🎯 Make Predictions" 
+2. Download the CSV template
+3. Upload your customer data file
+4. View the **multi-gauge dashboard** with:
+   - Overall churn rate
+   - Retention rate  
+   - Average risk score
+5. Download detailed results
 
-### 🎮 Interactive Demo
-- **Single Transaction Analysis**: Manual input or random generation
-- **Batch Processing**: Upload CSV files for bulk analysis
-- **Real-time Threshold Adjustment**: See impact on predictions
-- **Performance Metrics**: Confusion matrices and classification reports
-- **Visualization**: ROC curves, feature importance plots
-
-## � Model Performance Summary
-
-After experimenting with several approaches, here are the final results:
-
-| Metric | Logistic Regression | **XGBoost + SMOTE** |
-|--------|-------------------|-----------------|
-| ROC-AUC | 0.9576 | **0.9847** ⭐ |
-| PR-AUC | 0.7845 | **0.8756** ⭐ |
-| Precision | 0.8234 | **0.8967** ⭐ |
-| Recall | 0.7456 | **0.8123** ⭐ |
-| F1-Score | 0.7834 | **0.8534** ⭐ |
-
-*Note: These metrics were achieved after significant hyperparameter tuning and threshold optimization.*
-
-## 🔍 Business Impact
-
-### Key Insights for Resume/Interview:
- - **Tuned thresholds using a business cost matrix, demonstrating 67% reduction in business costs**
-
-### Cost Optimization
- - **Optimal Threshold**: 0.98 (found via cost-sensitive optimization)
- - **Business Impact**: 67% reduction in total business costs (from $1,500 to $490 on test set)
+### Data Analysis
+1. Visit "📊 Data Analysis" to explore:
+   - Customer demographics
+   - Churn patterns by age, geography, products
+   - Feature importance analysis
 
 ## 🧪 Testing
- - **Default threshold (0.5):** $1,500 total cost (1,010 false positives, 98 false negatives)
- - **Optimized threshold (0.98):** $490 total cost (0 false positives, 98 false negatives)
- - **Cost savings:** $1,010
- - **Percentage reduction:** 67%
 
- *Threshold optimization prioritizes minimizing costly false positives, resulting in a substantial reduction in overall business costs. The model is highly conservative at the optimal threshold, which may trade off some recall for maximum cost savings.*
+The project includes comprehensive test suites:
 
 ```bash
-# Run unit tests
-python -m pytest tests/ -v
+# Run API tests
+pytest tests/test_api.py -v
 
-# Or run individual test files
-python tests/test_preprocess.py
-python tests/test_inference.py
+# Test model validation
+python -m pytest tests/ --cov=app
 ```
 
-## 📝 Usage Examples
+## 📈 Model Details
 
-### Python API
+### Feature Engineering
+- **15 engineered features** from 10 original columns
+- **One-hot encoding** for categorical variables
+- **Interaction features** (CreditScore × Age)
+- **Ratio features** (Balance/Salary)
 
-```python
-from src.utils import load_object
-from src.inference import predict_from_row, predict_from_df
+### Model Selection
+- Tested: Logistic Regression, Random Forest, XGBoost
+- **Best performer**: Random Forest with hyperparameter tuning
+- **Cross-validation**: 5-fold CV for robust evaluation
 
-# Load trained models
-pipeline = load_object('models/pipeline.joblib')
-model = load_object('models/xgb_model.joblib')
+## 📧 Contact
 
-# Single prediction
-transaction = {
-    'Time': 50000, 'Amount': 100.0,
-    'V1': -1.23, 'V2': 0.45, # ... other V features
-}
-result = predict_from_row(model, pipeline, transaction)
-print(f"Fraud probability: {result['prob_fraud']:.2%}")
-
-# Batch prediction
-import pandas as pd
-df = pd.read_csv('your_transactions.csv')
-results = predict_from_df(model, pipeline, df)
-```
-
-### Streamlit Demo Features
-
-1. **Single Transaction**: Input features manually or generate random samples
-2. **Batch Upload**: Process CSV files with multiple transactions
-3. **Threshold Tuning**: Adjust decision threshold and see real-time impact
-4. **Model Explanations**: View SHAP feature importance and explanations
-5. **Performance Metrics**: Confusion matrices and detailed classification reports
-
-## 🔧 Configuration
-
-Key settings in `src/config.py`:
-
-```python
-SEED = 42                    # Reproducibility
-TEST_SIZE = 0.2             # Train/test split
-CV_FOLDS = 3                # Cross-validation folds
-RANDOMIZED_SEARCH_ITER = 20 # Hyperparameter search iterations
-COST_FP = 1                 # False positive cost
-COST_FN = 5                 # False negative cost
-```
-
-## 📚 Technical Details
-
-### Preprocessing Pipeline
-- **Numeric Features**: StandardScaler normalization
-- **Feature Selection**: All V1-V28, Time, Amount features
-- **Missing Values**: None in this dataset
-- **Outliers**: Handled implicitly by tree-based models
-
-### Model Architecture
-- **Base Model**: XGBoost Classifier
-- **Resampling**: SMOTE with default parameters
-- **Hyperparameters**: Tuned via RandomizedSearchCV
-- **Validation**: Stratified 3-fold cross-validation
-
-### Evaluation Metrics
-- **Primary**: ROC-AUC (overall performance)
-- **Secondary**: PR-AUC (precision-recall balance)
-- **Business**: Custom cost function (FP cost + FN cost)
-- **Interpretability**: SHAP values for feature importance
+**Omprakash Mourya**
+- Email: ommourya2006@gmail.com
+- GitHub: [@omprakash-mourya](https://github.com/omprakash-mourya)
+- Project: [Customer Churn Analysis](https://github.com/omprakash-mourya/customer-churn-analysis)
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Omprakash Mourya**  
-📧 Email: ommourya2006@gmail.com  
-💼 GitHub: [@omprakash-mourya](https://github.com/omprakash-mourya)
+---
+
+⭐ **Star this repository** if you found it helpful!
